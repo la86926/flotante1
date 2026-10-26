@@ -74,7 +74,7 @@ public class SpeedService extends AccessibilityService {
         if (t == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED || t == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
             if (!updateForeground() && t == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && e.getPackageName() != null) {
                 String p = e.getPackageName().toString();
-                if (!p.equals(getPackageName()) && !p.equals("com.android.systemui")) setForeground(YT.equals(p));
+                if (!p.equals(getPackageName()) && !p.equals("com.android.systemui")) setYtForeground(YT.equals(p));
             }
             evaluate();
         }
@@ -189,14 +189,14 @@ public class SpeedService extends AccessibilityService {
                 if (r == null || r.getPackageName() == null) continue;
                 String p = r.getPackageName().toString();
                 if (p.equals(getPackageName())) continue;
-                setForeground(YT.equals(p));
+                setYtForeground(YT.equals(p));
                 return true;
             }
         } catch (Exception ignored) { }
         return false;
     }
 
-    void setForeground(boolean b) {
+    void setYtForeground(boolean b) {
         if (b == ytForeground) return;
         ytForeground = b;
         Log.i(TAG, "VYT_FG youtube=" + b);
