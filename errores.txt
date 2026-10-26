@@ -1,0 +1,14 @@
+14:> Task :app:processReleaseMainManifest FAILED
+15-> Task :app:parseReleaseLocalResources
+16-gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1793058640802.json
+17-
+18-FAILURE: Build failed with an exception.
+--
+20:* What went wrong:
+21-Execution failed for task ':app:processReleaseMainManifest'.
+22-> com.android.manifmerger.ManifestMerger2$MergeFailureException: Error parsing /home/runner/work/flotante1/flotante1/android-app/app/src/main/AndroidManifest.xml
+23-
+24-* Try:
+--
+30:BUILD FAILED in 10s
+31-11 actionable tasks: 11 executed
