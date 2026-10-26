@@ -1,18 +1,24 @@
 package com.luis.velyt;
 
+import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.hardware.HardwareBuffer;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,10 +26,15 @@ import android.widget.TextView;
 
 import java.util.Locale;
 
-/** Botón flotante: panel (− velocidad + ⌄) o burbuja redonda. Se arrastra con el dedo. */
+/**
+ * Botón flotante con tres formas: panel (− velocidad + ⌄ ×), burbuja redonda y
+ * la tarjeta de la X ("Volver a mostrar"). También pone la "cubierta": una foto de la
+ * pantalla encima de todo mientras se toca el menú de YouTube, para que no se vea.
+ */
 class Overlay {
 
     private static final int BG = 0xEB1C1C1E;
+    private static final int MODE_PANEL = 0, MODE_BUBBLE = 1, MODE_CLOSE = 2;
 
     private final SpeedService s;
     private final WindowManager wm;
@@ -31,19 +42,25 @@ class Overlay {
     private final WindowManager.LayoutParams lp;
     private final int slop;
 
-    private final LinearLayout panel;
-    private final TextView minus, label, plus, bubble;
+    private final LinearLayout panel, closeCard;
+    private final TextView minus, label, plus, bubble, close, optNext, optReopen;
     private final ImageView minimize;
 
     private View current;
-    boolean shown, minimized;
+    private int mode;
+    boolean shown;
+
+    // Cubierta
+    private ImageView coverView;
+    private Bitmap coverBitmap;
+    boolean covered;
 
     Overlay(SpeedService s) {
         this.s = s;
         wm = (WindowManager) s.getSystemService(Context.WINDOW_SERVICE);
         prefs = s.getSharedPreferences("overlay", Context.MODE_PRIVATE);
         slop = ViewConfiguration.get(s).getScaledTouchSlop();
-        minimized = prefs.getBoolean("min", false);
+        mode = prefs.getBoolean("min", false) ? MODE_BUBBLE : MODE_PANEL;
 
         lp = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -54,18 +71,18 @@ class Overlay {
                 PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.START;
         DisplayMetrics dm = s.getResources().getDisplayMetrics();
-        lp.x = prefs.getInt("x", dm.widthPixels - dp(200));
+        lp.x = prefs.getInt("x", dm.widthPixels - dp(250));
         lp.y = prefs.getInt("y", (int) (dm.heightPixels * 0.42f));
 
-        // Panel expandido
+        // ----- Panel -----
         panel = new LinearLayout(s);
         panel.setOrientation(LinearLayout.HORIZONTAL);
         panel.setGravity(Gravity.CENTER_VERTICAL);
         panel.setPadding(dp(5), dp(5), dp(5), dp(5));
-        panel.setBackground(round(BG, dp(28)));
+        panel.setBackground(round(BG, dp(29)));
 
-        minus = circleButton("−", "Bajar velocidad");
-        plus = circleButton("+", "Subir velocidad");
+        minus = circleButton("−", 24, "Bajar velocidad");
+        plus = circleButton("+", 24, "Subir velocidad");
 
         label = new TextView(s);
         label.setTextColor(Color.WHITE);
@@ -78,18 +95,30 @@ class Overlay {
 
         minimize = new ImageView(s);
         minimize.setImageResource(R.drawable.ic_min);
-        minimize.setAlpha(0.75f);
-        minimize.setPadding(dp(6), dp(6), dp(6), dp(6));
+        minimize.setScaleType(ImageView.ScaleType.CENTER);
+        minimize.setAlpha(0.85f);
         minimize.setContentDescription("Minimizar");
 
-        panel.addView(minus, new LinearLayout.LayoutParams(dp(42), dp(42)));
-        panel.addView(label, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(42)));
-        panel.addView(plus, new LinearLayout.LayoutParams(dp(42), dp(42)));
-        LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(dp(34), dp(42));
-        mp.leftMargin = dp(2);
-        panel.addView(minimize, mp);
+        close = new TextView(s);
+        close.setText("×");
+        close.setTextColor(0xD9FFFFFF);
+        close.setTextSize(24);
+        close.setGravity(Gravity.CENTER);
+        close.setIncludeFontPadding(false);
+        close.setContentDescription("Cerrar");
 
-        // Burbuja minimizada
+        panel.addView(minus, new LinearLayout.LayoutParams(dp(46), dp(46)));
+        panel.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(46)));
+        panel.addView(plus, new LinearLayout.LayoutParams(dp(46), dp(46)));
+        LinearLayout.LayoutParams sep = new LinearLayout.LayoutParams(dp(1), dp(24));
+        sep.leftMargin = dp(6);
+        View line = new View(s);
+        line.setBackgroundColor(0x33FFFFFF);
+        panel.addView(line, sep);
+        panel.addView(minimize, new LinearLayout.LayoutParams(dp(42), dp(46)));
+        panel.addView(close, new LinearLayout.LayoutParams(dp(42), dp(46)));
+
+        // ----- Burbuja -----
         bubble = new TextView(s);
         bubble.setTextColor(Color.WHITE);
         bubble.setTextSize(13);
@@ -101,29 +130,59 @@ class Overlay {
         bb.setStroke(dp(2), 0x66FFFFFF);
         bubble.setBackground(bb);
         bubble.setContentDescription("Abrir controles de velocidad");
-        bubble.setLayoutParams(new android.view.ViewGroup.LayoutParams(dp(54), dp(54)));
-        bubble.setMinWidth(dp(54));
-        bubble.setMinHeight(dp(54));
+        bubble.setMinWidth(dp(56));
+        bubble.setMinHeight(dp(56));
 
+        // ----- Tarjeta de la X -----
+        closeCard = new LinearLayout(s);
+        closeCard.setOrientation(LinearLayout.VERTICAL);
+        closeCard.setPadding(dp(14), dp(10), dp(14), dp(14));
+        closeCard.setBackground(round(BG, dp(18)));
+        TextView q = new TextView(s);
+        q.setText("Volver a mostrar");
+        q.setTextColor(0x99FFFFFF);
+        q.setTextSize(12);
+        q.setPadding(dp(2), 0, 0, dp(8));
+        closeCard.addView(q);
+        optNext = option("Próximo video");
+        optReopen = option("Al reabrir YouTube");
+        closeCard.addView(optNext, fullWidth(0));
+        closeCard.addView(optReopen, fullWidth(dp(8)));
+
+        // ----- Toques -----
         minus.setOnTouchListener(new Drag(() -> s.step(-1)));
         plus.setOnTouchListener(new Drag(() -> s.step(+1)));
         label.setOnTouchListener(new Drag(s::reset));
-        minimize.setOnTouchListener(new Drag(() -> setMinimized(true)));
+        minimize.setOnTouchListener(new Drag(() -> setMode(MODE_BUBBLE)));
+        close.setOnTouchListener(new Drag(() -> setMode(MODE_CLOSE)));
+        line.setOnTouchListener(new Drag(null));
         panel.setOnTouchListener(new Drag(null));
-        bubble.setOnTouchListener(new Drag(() -> setMinimized(false)));
+        bubble.setOnTouchListener(new Drag(() -> setMode(MODE_PANEL)));
+        optNext.setOnClickListener(v -> { setMode(MODE_PANEL); s.dismiss(false); });
+        optReopen.setOnClickListener(v -> { setMode(MODE_PANEL); s.dismiss(true); });
+        closeCard.setOnTouchListener((v, e) -> {
+            if (e.getActionMasked() == MotionEvent.ACTION_OUTSIDE) { setMode(MODE_PANEL); return true; }
+            return false;
+        });
 
         setSpeed(1f);
     }
 
     // ---------- Mostrar / ocultar ----------
 
+    private View viewFor(int m) {
+        return m == MODE_BUBBLE ? bubble : m == MODE_CLOSE ? closeCard : panel;
+    }
+
     void show() {
         if (shown) return;
-        current = minimized ? bubble : panel;
+        current = viewFor(mode);
+        if (mode == MODE_CLOSE) lp.flags |= WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+        else lp.flags &= ~WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
         try {
             wm.addView(current, lp);
             shown = true;
-            Log.i(SpeedService.TAG, "VYT_STATE overlay=shown mode=" + mode());
+            Log.i(SpeedService.TAG, "VYT_STATE overlay=shown mode=" + modeName());
             current.post(this::reclamp);
             current.postDelayed(this::logPos, 250);
         } catch (Exception e) {
@@ -135,27 +194,111 @@ class Overlay {
         if (!shown) return;
         try { wm.removeView(current); } catch (Exception ignored) { }
         shown = false;
+        if (mode == MODE_CLOSE) mode = MODE_PANEL;
         Log.i(SpeedService.TAG, "VYT_STATE overlay=hidden");
     }
 
-    void setMinimized(boolean m) {
-        if (m == minimized) return;
-        int oldW = current != null ? current.getWidth() : 0;
+    private void setMode(int m) {
+        if (m == mode) return;
+        View old = viewFor(mode);
+        int oldW = old.getWidth();
         boolean wasShown = shown;
         if (wasShown) {
             try { wm.removeView(current); } catch (Exception ignored) { }
             shown = false;
         }
-        minimized = m;
-        // La burbuja queda en el borde derecho del panel, y el panel crece hacia la izquierda.
-        int newW = dp(m ? 54 : 190);
+        View nv = viewFor(m);
+        int newW = nv.getWidth() > 0 ? nv.getWidth() : dp(m == MODE_BUBBLE ? 56 : m == MODE_CLOSE ? 190 : 250);
+        // Mantiene alineado el borde derecho (donde está la X / la burbuja).
         if (oldW > 0) lp.x = lp.x + oldW - newW;
-        prefs.edit().putBoolean("min", m).apply();
-        Log.i(SpeedService.TAG, "VYT_MODE " + mode());
+        mode = m;
+        if (m != MODE_CLOSE) prefs.edit().putBoolean("min", m == MODE_BUBBLE).apply();
+        Log.i(SpeedService.TAG, "VYT_MODE " + modeName());
         if (wasShown) show();
     }
 
-    String mode() { return minimized ? "bubble" : "expanded"; }
+    private String modeName() {
+        return mode == MODE_BUBBLE ? "bubble" : mode == MODE_CLOSE ? "close" : "expanded";
+    }
+
+    // ---------- Cubierta (para que no se vea el menú de YouTube) ----------
+
+    /** Toma una foto de la pantalla, la pone encima de todo y luego ejecuta {@code then}. */
+    @android.annotation.TargetApi(30)
+    void cover(Runnable then) {
+        if (covered || Build.VERSION.SDK_INT < 30 || !shown) { then.run(); return; }
+        try {
+            s.takeScreenshot(Display.DEFAULT_DISPLAY, s.getMainExecutor(),
+                    new AccessibilityService.TakeScreenshotCallback() {
+                        @Override
+                        public void onSuccess(AccessibilityService.ScreenshotResult r) {
+                            try {
+                                HardwareBuffer hb = r.getHardwareBuffer();
+                                Bitmap hw = Bitmap.wrapHardwareBuffer(hb, r.getColorSpace());
+                                Bitmap bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, false) : null;
+                                hb.close();
+                                if (bm != null) addCover(bm);
+                            } catch (Exception e) {
+                                Log.e(SpeedService.TAG, "VYT_ERR cover " + e);
+                            }
+                            then.run();
+                        }
+
+                        @Override
+                        public void onFailure(int code) {
+                            Log.i(SpeedService.TAG, "VYT_COVER fallo=" + code);
+                            then.run();
+                        }
+                    });
+        } catch (Exception e) {
+            then.run();
+        }
+    }
+
+    @android.annotation.TargetApi(30)
+    private void addCover(Bitmap bm) {
+        coverView = new ImageView(s);
+        coverView.setScaleType(ImageView.ScaleType.FIT_XY);
+        coverView.setImageBitmap(bm);
+        coverBitmap = bm;
+        WindowManager.LayoutParams c = new WindowManager.LayoutParams(
+                bm.getWidth(), bm.getHeight(),
+                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                PixelFormat.OPAQUE);
+        c.gravity = Gravity.TOP | Gravity.START;
+        c.x = 0;
+        c.y = 0;
+        c.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        try {
+            wm.addView(coverView, c);
+            covered = true;
+            Log.i(SpeedService.TAG, "VYT_COVER on");
+            // El botón vuelve a quedar por encima de la cubierta, para seguir usándolo.
+            if (shown) {
+                try { wm.removeView(current); } catch (Exception ignored) { }
+                shown = false;
+                show();
+            }
+        } catch (Exception e) {
+            Log.e(SpeedService.TAG, "VYT_ERR addCover " + e);
+            coverView = null;
+            bm.recycle();
+            coverBitmap = null;
+        }
+    }
+
+    void uncover() {
+        if (!covered) return;
+        try { wm.removeView(coverView); } catch (Exception ignored) { }
+        covered = false;
+        coverView = null;
+        if (coverBitmap != null) { coverBitmap.recycle(); coverBitmap = null; }
+        Log.i(SpeedService.TAG, "VYT_COVER off");
+    }
 
     // ---------- Velocidad ----------
 
@@ -173,7 +316,7 @@ class Overlay {
     }
 
     void flash() {
-        View v = minimized ? bubble : label;
+        View v = mode == MODE_BUBBLE ? bubble : label;
         v.animate().cancel();
         v.setAlpha(0.3f);
         v.animate().alpha(1f).setDuration(350).start();
@@ -201,8 +344,8 @@ class Overlay {
 
     private int[] clampXY(int x, int y) {
         DisplayMetrics dm = s.getResources().getDisplayMetrics();
-        int w = current != null && current.getWidth() > 0 ? current.getWidth() : dp(54);
-        int hh = current != null && current.getHeight() > 0 ? current.getHeight() : dp(54);
+        int w = current != null && current.getWidth() > 0 ? current.getWidth() : dp(56);
+        int hh = current != null && current.getHeight() > 0 ? current.getHeight() : dp(56);
         x = Math.max(0, Math.min(x, dm.widthPixels - w));
         y = Math.max(0, Math.min(y, dm.heightPixels - hh));
         return new int[]{x, y};
@@ -214,11 +357,13 @@ class Overlay {
 
     void logPos() {
         if (!shown) return;
-        if (minimized) {
+        if (mode == MODE_BUBBLE) {
             Log.i(SpeedService.TAG, "VYT_POS mode=bubble bubble=" + center(bubble));
+        } else if (mode == MODE_CLOSE) {
+            Log.i(SpeedService.TAG, "VYT_POS mode=close next=" + center(optNext) + " reopen=" + center(optReopen));
         } else {
             Log.i(SpeedService.TAG, "VYT_POS mode=expanded minus=" + center(minus) + " label=" + center(label)
-                    + " plus=" + center(plus) + " min=" + center(minimize));
+                    + " plus=" + center(plus) + " min=" + center(minimize) + " close=" + center(close));
         }
     }
 
@@ -251,9 +396,12 @@ class Overlay {
                     return true;
                 case MotionEvent.ACTION_MOVE: {
                     float dx = e.getRawX() - downX, dy = e.getRawY() - downY;
-                    if (!dragging && Math.hypot(dx, dy) > slop) {
+                    // En los botones se tolera un poco más de movimiento antes de arrastrar,
+                    // para que un toque con el dedo algo inclinado no se pierda.
+                    float limit = onTap != null ? slop * 2.5f : slop;
+                    if (!dragging && Math.hypot(dx, dy) > limit) {
                         dragging = true;
-                        v.setAlpha(1f);
+                        v.setAlpha(onTap != null ? 0.85f : 1f);
                     }
                     if (dragging && shown) {
                         int[] c = clampXY(startX + (int) dx, startY + (int) dy);
@@ -264,7 +412,7 @@ class Overlay {
                     return true;
                 }
                 case MotionEvent.ACTION_UP:
-                    v.setAlpha(1f);
+                    v.setAlpha(v == minimize ? 0.85f : 1f);
                     if (dragging) {
                         savePos();
                         Log.i(SpeedService.TAG, "VYT_MOVED x=" + lp.x + " y=" + lp.y);
@@ -274,7 +422,7 @@ class Overlay {
                     }
                     return true;
                 case MotionEvent.ACTION_CANCEL:
-                    v.setAlpha(1f);
+                    v.setAlpha(v == minimize ? 0.85f : 1f);
                     return true;
             }
             return false;
@@ -283,11 +431,11 @@ class Overlay {
 
     // ---------- Utilidades ----------
 
-    private TextView circleButton(String text, String desc) {
+    private TextView circleButton(String text, int sp, String desc) {
         TextView b = new TextView(s);
         b.setText(text);
         b.setTextColor(Color.WHITE);
-        b.setTextSize(22);
+        b.setTextSize(sp);
         b.setGravity(Gravity.CENTER);
         b.setIncludeFontPadding(false);
         GradientDrawable g = new GradientDrawable();
@@ -296,6 +444,24 @@ class Overlay {
         b.setBackground(g);
         b.setContentDescription(desc);
         return b;
+    }
+
+    private TextView option(String text) {
+        TextView t = new TextView(s);
+        t.setText(text);
+        t.setTextColor(Color.WHITE);
+        t.setTextSize(15);
+        t.setTypeface(Typeface.DEFAULT_BOLD);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(dp(16), dp(11), dp(16), dp(11));
+        t.setBackground(round(0x26FFFFFF, dp(14)));
+        return t;
+    }
+
+    private static LinearLayout.LayoutParams fullWidth(int top) {
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.topMargin = top;
+        return p;
     }
 
     private static GradientDrawable round(int color, int radius) {

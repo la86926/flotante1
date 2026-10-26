@@ -6,7 +6,9 @@ App Android con un botón flotante para subir o bajar la velocidad de los videos
 
 - Aparece solo cuando hay un video en YouTube; se oculta al salir.
 - `−` / `+` cambian de 0.25x en 0.25x (de 0.25x a 4x; hasta donde tu YouTube lo permita).
+- Mientras cambia la velocidad, la pantalla se tapa con una foto de sí misma: no se ve el menú de YouTube (Android 11 o más).
 - Tocar el número vuelve a 1x. `⌄` lo minimiza en una burbuja. Ambos se arrastran con el dedo.
+- `×` lo quita: *Próximo video* (vuelve en el siguiente video) o *Al reabrir YouTube*.
 
 ## Instalar
 

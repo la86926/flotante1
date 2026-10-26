@@ -55,6 +55,21 @@ read_pos() {
   read -r LX LY <<<"$(xy label "$P")"
   read -r PX PY <<<"$(xy plus "$P")"
   read -r NX NY <<<"$(xy min "$P")"
+  read -r CX CY <<<"$(xy close "$P")"
+}
+# El menú de YouTube debe abrirse y cerrarse SIEMPRE con la cubierta puesta (que no se vea).
+cover_ok() {
+  logs | grep -E "VYT_COVER (on|off)|FAKEYT dialogs=" | awk '
+    /VYT_COVER on/  { c=1; ons++ }
+    /VYT_COVER off/ { c=0 }
+    /dialogs=[1-9]/ { opened++; if (!c) bad=1 }
+    /dialogs=0/     { if (!c) bad=1 }
+    END { if (ons==0 || opened==0 || bad || c) exit 1 }' \
+    || fail "el menú de YouTube se vio (no estaba tapado): $(logs | grep -E 'VYT_COVER|dialogs=' | tr '\n' ' ')"
+}
+last_state_is() {
+  local st; st=$(last "VYT_STATE overlay=")
+  [[ "$st" == *"overlay=$1"* ]]
 }
 expect_speed() { # objetivo con 2 decimales, segundos
   local s="$1" t="${2:-25}"
@@ -63,6 +78,7 @@ expect_speed() { # objetivo con 2 decimales, segundos
   [[ "$f" == *"speed=$s"* ]] || fail "YouTube de prueba quedó en otra velocidad: $f (esperado $s)"
   no_decoys
   menus_closed
+  cover_ok
 }
 
 echo "== Instalación"
@@ -94,8 +110,11 @@ ok "con video aparece el botón flotante"
 echo "== 3. + una vez → 1.25x (valor rápido del panel)"
 clear_logs
 tap "$PX" "$PY"
+wait_for "VYT_COVER on" 8 || fail "no se puso la cubierta"
+sleep 0.4
+shot 02b-durante-el-cambio-tapado
 expect_speed 1.25
-ok "1.25x aplicado en YouTube y menú cerrado"
+ok "1.25x aplicado en YouTube, sin que se vea el menú, y menú cerrado"
 
 echo "== 4. + seis veces seguidas → 2.75x (barra del panel)"
 clear_logs
@@ -152,7 +171,57 @@ expect_speed 1.25
 shot 06-tras-reabrir
 ok "funciona después de mover y reabrir"
 
-echo "== 10. Salir de YouTube → desaparece; volver → reaparece"
+echo "== 10. X → tocar fuera cancela"
+clear_logs
+read_pos
+tap "$CX" "$CY"
+wait_for "VYT_MODE close" 5 || fail "la X no abrió las opciones"
+wait_for "VYT_POS mode=close" 5 || fail "no se publicó la posición de las opciones"
+P=$(last "VYT_POS mode=close")
+read -r OX OY <<<"$(xy next "$P")"
+read -r RX RY <<<"$(xy reopen "$P")"
+shot 07-x-opciones
+tap 8 30
+wait_for "VYT_MODE expanded" 5 || fail "tocar fuera no cerró las opciones"
+no_decoys
+ok "la X muestra las dos opciones y tocar fuera las cancela"
+
+echo "== 11. X → Próximo video"
+clear_logs
+read_pos
+tap "$CX" "$CY"
+wait_for "VYT_POS mode=close" 5 || fail "no se abrieron las opciones"
+P=$(last "VYT_POS mode=close"); read -r OX OY <<<"$(xy next "$P")"
+tap "$OX" "$OY"
+wait_for "VYT_DISMISS video" 5 || fail "Próximo video no respondió"
+sleep 3
+last_state_is hidden || fail "el botón no se quitó con Próximo video"
+shot 08-cerrado-este-video
+clear_logs
+adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity --es video "Video 2" >/dev/null
+wait_for "VYT_RESTORE otro_video" 10 || fail "no detectó el video nuevo"
+wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció en el video siguiente"
+ok "Próximo video: se oculta y vuelve en el siguiente video"
+
+echo "== 12. X → Al reabrir YouTube"
+clear_logs
+read_pos
+tap "$CX" "$CY"
+wait_for "VYT_POS mode=close" 5 || fail "no se abrieron las opciones"
+P=$(last "VYT_POS mode=close"); read -r RX RY <<<"$(xy reopen "$P")"
+tap "$RX" "$RY"
+wait_for "VYT_DISMISS reabrir" 5 || fail "Al reabrir YouTube no respondió"
+adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity --es video "Video 3" >/dev/null
+sleep 4
+last_state_is hidden || fail "reapareció en otro video aunque se eligió Al reabrir YouTube"
+clear_logs
+adb shell input keyevent KEYCODE_HOME
+wait_for "VYT_RESTORE reabrir" 10 || fail "no se reactivó al salir de YouTube"
+adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
+wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció al reabrir YouTube"
+ok "Al reabrir YouTube: sigue oculto en otros videos y vuelve al reabrir YouTube"
+
+echo "== 13. Salir de YouTube → desaparece; volver → reaparece"
 clear_logs
 adb shell input keyevent KEYCODE_HOME
 wait_for "VYT_STATE overlay=hidden" 10 || fail "el botón siguió visible fuera de YouTube"
@@ -162,7 +231,7 @@ adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
 wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció al volver al video"
 ok "se oculta fuera de YouTube y reaparece al volver"
 
-echo "== 11. Cerrar el video → desaparece"
+echo "== 14. Cerrar el video → desaparece"
 clear_logs
 adb shell input keyevent KEYCODE_BACK
 wait_for "FAKEYT player closed" 10 || fail "no se cerró el video de prueba"

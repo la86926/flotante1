@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
@@ -39,8 +40,15 @@ public class SpeedService extends AccessibilityService {
     float lastSessionSpeed = -1f;
     boolean connected;
 
+    // Cerrado con la X
+    boolean hideVideo;        // hasta el próximo video
+    boolean hideUntilReopen;  // hasta salir de YouTube y volver
+    String hiddenKey;
+    long inactiveSince;
+
     private final MediaController.Callback controllerCb = new MediaController.Callback() {
         @Override public void onPlaybackStateChanged(PlaybackState s) { onSessionState(s); evaluate(); }
+        @Override public void onMetadataChanged(MediaMetadata m) { evaluate(); }
         @Override public void onSessionDestroyed() { setController(null); evaluate(); }
     };
 
@@ -54,6 +62,9 @@ public class SpeedService extends AccessibilityService {
     };
 
     private final Runnable applyRun = this::apply;
+    private final Runnable hideRun = () -> { hidePending = false; if (overlay != null) overlay.hide(); };
+    private final Runnable uncoverRun = () -> { if (overlay != null) overlay.uncover(); };
+    private boolean hidePending;
 
     @Override
     protected void onServiceConnected() {
@@ -92,7 +103,7 @@ public class SpeedService extends AccessibilityService {
     public void onDestroy() {
         connected = false;
         h.removeCallbacksAndMessages(null);
-        if (overlay != null) overlay.hide();
+        if (overlay != null) { overlay.uncover(); overlay.hide(); }
         if (msm != null && sessionPerm) {
             try { msm.removeOnActiveSessionsChangedListener(sessionsCb); } catch (Exception ignored) { }
         }
@@ -171,6 +182,20 @@ public class SpeedService extends AccessibilityService {
         return System.currentTimeMillis() - lastAudio < 5000;
     }
 
+    /** Identifica el video actual (título + duración), si YouTube lo informa. */
+    String videoKey() {
+        if (yt == null) return null;
+        try {
+            MediaMetadata m = yt.getMetadata();
+            if (m == null) return null;
+            String t = m.getString(MediaMetadata.METADATA_KEY_TITLE);
+            if (t == null) return null;
+            return t + "|" + m.getLong(MediaMetadata.METADATA_KEY_DURATION);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     void periodic() {
         trySessions();
         if (audio != null && audio.isMusicActive()) lastAudio = System.currentTimeMillis();
@@ -204,8 +229,44 @@ public class SpeedService extends AccessibilityService {
 
     void evaluate() {
         if (overlay == null) return;
-        boolean show = ytForeground && (videoActive() || automator.busy);
-        if (show) overlay.show(); else overlay.hide();
+        boolean active = videoActive();
+
+        if (hideUntilReopen && !ytForeground) {
+            hideUntilReopen = false;
+            Log.i(TAG, "VYT_RESTORE reabrir");
+        }
+        if (hideVideo) {
+            long now = System.currentTimeMillis();
+            String k = videoKey();
+            if (hiddenKey == null && k != null) hiddenKey = k;
+            if (!active) {
+                if (inactiveSince == 0) inactiveSince = now;
+                if (now - inactiveSince > 2000) { hideVideo = false; Log.i(TAG, "VYT_RESTORE video_terminado"); }
+            } else {
+                inactiveSince = 0;
+            }
+            if (hideVideo && k != null && hiddenKey != null && !k.equals(hiddenKey)) {
+                hideVideo = false;
+                Log.i(TAG, "VYT_RESTORE otro_video");
+            }
+        }
+
+        boolean dismissed = hideVideo || hideUntilReopen;
+        boolean want = ytForeground && !dismissed && (active || automator.busy);
+        if (want) {
+            h.removeCallbacks(hideRun);
+            hidePending = false;
+            overlay.show();
+        } else if (dismissed || automator.busy) {
+            h.removeCallbacks(hideRun);
+            hidePending = false;
+            overlay.hide();
+        } else if (overlay.shown && !hidePending) {
+            // Un pequeño margen evita que parpadee (y que se pierdan toques)
+            // cuando YouTube cambia de estado por un instante.
+            hidePending = true;
+            h.postDelayed(hideRun, ytForeground ? 1500 : 600);
+        }
     }
 
     // ---------- Botones ----------
@@ -232,16 +293,35 @@ public class SpeedService extends AccessibilityService {
         schedule();
     }
 
+    /** X: "Próximo video" (untilReopen=false) o "Al reabrir YouTube" (true). */
+    void dismiss(boolean untilReopen) {
+        if (untilReopen) {
+            hideUntilReopen = true;
+        } else {
+            hideVideo = true;
+            hiddenKey = videoKey();
+            inactiveSince = 0;
+        }
+        Log.i(TAG, "VYT_DISMISS " + (untilReopen ? "reabrir" : "video"));
+        evaluate();
+    }
+
     void schedule() {
         scheduled = true;
         h.removeCallbacks(applyRun);
-        h.postDelayed(applyRun, 450);
+        h.postDelayed(applyRun, 400);
     }
 
     void apply() {
         scheduled = false;
         if (automator.busy) { pending = true; return; }
         pending = false;
+        h.removeCallbacks(uncoverRun);
+        // Primero se tapa la pantalla con una foto de ella misma; luego se toca el menú.
+        overlay.cover(this::runAutomation);
+    }
+
+    private void runAutomation() {
         final float t = target;
         automator.setSpeed(t, yt, r -> {
             Log.i(TAG, String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=%b via=%s",
@@ -252,11 +332,13 @@ public class SpeedService extends AccessibilityService {
             } else if (!r.ok) {
                 overlay.flash();
             }
-            evaluate();
             if (pending) {
                 pending = false;
-                if (Math.abs(target - t) > 0.001f) apply();
+                if (Math.abs(target - t) > 0.001f) { runAutomation(); return; }
             }
+            // Se destapa cuando YouTube terminó de cerrar su menú.
+            h.postDelayed(uncoverRun, 250);
+            evaluate();
         });
     }
 }

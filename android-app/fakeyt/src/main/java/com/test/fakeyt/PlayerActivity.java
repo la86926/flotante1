@@ -52,6 +52,7 @@ public class PlayerActivity extends Activity {
         session = new MediaSession(this, "fakeyt");
         session.setActive(true);
         publish();
+        loadVideo(getIntent());
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -133,6 +134,26 @@ public class PlayerActivity extends Activity {
         session.release();
         Log.i(T, "FAKEYT player closed");
         super.onDestroy();
+    }
+
+    @Override
+    protected void onNewIntent(android.content.Intent i) {
+        super.onNewIntent(i);
+        setIntent(i);
+        loadVideo(i);
+    }
+
+    /** Como YouTube: cada video tiene su título en la sesión multimedia. */
+    private void loadVideo(android.content.Intent i) {
+        String t = i != null ? i.getStringExtra("video") : null;
+        if (t == null) t = "Video 1";
+        session.setMetadata(new android.media.MediaMetadata.Builder()
+                .putString(android.media.MediaMetadata.METADATA_KEY_TITLE, t)
+                .putLong(android.media.MediaMetadata.METADATA_KEY_DURATION, 600000)
+                .build());
+        playing = true;
+        publish();
+        Log.i(T, "FAKEYT video=" + t);
     }
 
     private void toggleControls() {
