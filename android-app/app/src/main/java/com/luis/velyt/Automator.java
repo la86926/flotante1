@@ -111,6 +111,7 @@ class Automator {
     }
 
     private void stepSettings() {
+        if (!s.ytForeground) { finish(false, s.target, "fuera_de_youtube"); return; }
         poll(playerTaps == 0 ? 200 : 900, () -> {
             Snap sn = snap();
             if (sn.panelOpen()) { stepPanel(); return true; }
@@ -307,6 +308,7 @@ class Automator {
     }
 
     private void tapPlayer(Snap sn) {
+        if (!s.ytForeground) return; // nunca tocar otra app
         DisplayMetrics dm = s.getResources().getDisplayMetrics();
         Rect p = sn.player();
         if (p == null || p.isEmpty()) {
@@ -417,7 +419,7 @@ class Automator {
                 String d = lower(n.getContentDescription());
                 if (!id.isEmpty() && SETTINGS_ID.matcher(id).find() && inPlayerArea(n)) return n;
                 if (t2 == null && !d.isEmpty() && SETTINGS_WORD.matcher(d).find() && inPlayerArea(n)) t2 = n;
-                if (t3 == null && !id.isEmpty() && OVERFLOW_ID.matcher(id).find()) t3 = n;
+                if (t3 == null && !id.isEmpty() && OVERFLOW_ID.matcher(id).find() && inPlayerArea(n)) t3 = n;
                 if (t4 == null && !d.isEmpty() && MORE_WORD.matcher(d).find() && inPlayerArea(n)) t4 = n;
             }
             return t2 != null ? t2 : t3 != null ? t3 : t4;
