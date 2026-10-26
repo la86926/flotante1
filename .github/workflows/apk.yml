@@ -83,14 +83,28 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Prueba en emulador Android ${{ matrix.api }}
+        id: prueba1
+        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api }}
-          target: default
+          target: ${{ matrix.api >= 37 && 'google_apis' || 'default' }}
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash ci/emulator-test.sh out/VelocidadYT.apk out/fakeyt.apk resultados-api${{ matrix.api }}
+
+      # Segundo intento solo si el emulador falló (a veces no arranca en el servidor).
+      - name: Reintento en emulador Android ${{ matrix.api }}
+        if: steps.prueba1.outcome == 'failure'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: ${{ matrix.api >= 37 && 'google_apis' || 'default' }}
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: rm -rf resultados-api${{ matrix.api }} && bash ci/emulator-test.sh out/VelocidadYT.apk out/fakeyt.apk resultados-api${{ matrix.api }}
 
       - uses: actions/upload-artifact@v4
         if: always()

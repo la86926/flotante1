@@ -235,7 +235,7 @@ class Overlay {
                             try {
                                 HardwareBuffer hb = r.getHardwareBuffer();
                                 Bitmap hw = Bitmap.wrapHardwareBuffer(hb, r.getColorSpace());
-                                Bitmap bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, false) : null;
+                                Bitmap bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, true) : null;
                                 hb.close();
                                 if (bm != null) addCover(bm);
                             } catch (Exception e) {
@@ -257,6 +257,15 @@ class Overlay {
 
     @android.annotation.TargetApi(30)
     private void addCover(Bitmap bm) {
+        // "Ventana" transparente donde está el botón: el botón real sigue visible y
+        // tocable debajo (la cubierta no recibe toques). Así nunca se quita el botón
+        // y no se pierden toques rápidos.
+        Rect hole = screenRect();
+        if (hole != null) {
+            android.graphics.Paint clear = new android.graphics.Paint();
+            clear.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR));
+            new android.graphics.Canvas(bm).drawRect(hole, clear);
+        }
         coverView = new ImageView(s);
         coverView.setScaleType(ImageView.ScaleType.FIT_XY);
         coverView.setImageBitmap(bm);
@@ -268,7 +277,7 @@ class Overlay {
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                PixelFormat.OPAQUE);
+                PixelFormat.TRANSLUCENT);
         c.gravity = Gravity.TOP | Gravity.START;
         c.x = 0;
         c.y = 0;
@@ -277,12 +286,6 @@ class Overlay {
             wm.addView(coverView, c);
             covered = true;
             Log.i(SpeedService.TAG, "VYT_COVER on");
-            // El botón vuelve a quedar por encima de la cubierta, para seguir usándolo.
-            if (shown) {
-                try { wm.removeView(current); } catch (Exception ignored) { }
-                shown = false;
-                show();
-            }
         } catch (Exception e) {
             Log.e(SpeedService.TAG, "VYT_ERR addCover " + e);
             coverView = null;
