@@ -82,6 +82,18 @@ cover_ok() {
     END { if (ons==0 || opened==0 || bad || c) exit 1 }' \
     || fail "el menú de YouTube se vio (no estaba tapado): $(logs | grep -E 'VYT_COVER|dialogs=' | tr '\n' ' ')"
 }
+# Si está en burbuja, la toca para abrir los controles.
+expand() {
+  sleep 0.6
+  local P; P=$(last_any "VYT_POS mode=")
+  if [[ "$P" == *"mode=bubble"* ]]; then
+    local X Y; read -r X Y <<<"$(xy bubble "$P")"
+    clear_logs
+    tap "$X" "$Y"
+    wait_for "VYT_MODE expanded" 5 || fail "tocar la burbuja no abrió los controles"
+    wait_for "VYT_POS mode=expanded" 5 || fail "sin posición tras abrir la burbuja"
+  fi
+}
 last_state_is() {
   local st; st=$(last "VYT_STATE overlay=")
   [[ "$st" == *"overlay=$1"* ]]
@@ -119,10 +131,12 @@ echo "== 2. Al abrir un video: aparece solo"
 clear_logs
 adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
 wait_for "VYT_STATE overlay=shown" 15 || fail "el botón no apareció al reproducir el video"
-read_pos
+[[ "$(last 'VYT_STATE overlay=shown')" == *"mode=bubble"* ]] || fail "el video no empezó en burbuja"
 sleep 0.5
-shot 02-video-con-boton
-ok "con video aparece el botón flotante"
+shot 02-video-con-burbuja
+expand
+read_pos
+ok "con video aparece en burbuja, y al tocarla se abren los controles"
 
 echo "== 3. + una vez → 1.25x (valor rápido del panel)"
 clear_logs
@@ -131,7 +145,12 @@ wait_for "VYT_COVER on" 8 || fail "no se puso la cubierta"
 sleep 0.4
 shot 02b-durante-el-cambio-tapado
 expect_speed 1.25
-ok "1.25x aplicado en YouTube, sin que se vea el menú, y menú cerrado"
+C=$(last "VYT_COVER on")
+[[ "$C" == *"mode=shot"* ]] || fail "en vertical debía tapar con foto solo debajo del video: $C"
+T=$(echo "$C" | grep -oE 'top=[0-9]+' | cut -d= -f2); PB=$(echo "$C" | grep -oE 'playerBottom=[0-9]+' | cut -d= -f2)
+(( T >= PB )) || fail "la cubierta tapaba el video: $C"
+wait_for "VYT_LEARN rect=" 3 || fail "no aprendió dónde sale el menú"
+ok "1.25x aplicado; el menú no se vio y el video quedó libre (tapado desde y=$T, video hasta y=$PB)"
 
 echo "== 4. + seis veces seguidas → 2.75x (barra del panel)"
 clear_logs
@@ -218,10 +237,12 @@ clear_logs
 adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity --es video "Video 2" >/dev/null
 wait_for "VYT_RESTORE otro_video" 10 || fail "no detectó el video nuevo"
 wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció en el video siguiente"
-ok "Próximo video: se oculta y vuelve en el siguiente video"
+[[ "$(last 'VYT_STATE overlay=shown')" == *"mode=bubble"* ]] || fail "el video siguiente no empezó en burbuja"
+ok "Próximo video: se oculta y vuelve (en burbuja) en el siguiente video"
 
 echo "== 12. X → Al reabrir YouTube"
 clear_logs
+expand
 read_pos
 tap "$CX" "$CY"
 wait_for "VYT_POS mode=close" 5 || fail "no se abrieron las opciones"
@@ -237,6 +258,29 @@ wait_for "VYT_RESTORE reabrir" 10 || fail "no se reactivó al salir de YouTube"
 adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
 wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció al reabrir YouTube"
 ok "Al reabrir YouTube: sigue oculto en otros videos y vuelve al reabrir YouTube"
+
+echo "== 12b. Horizontal: se reubica, + funciona y el menú se tapa"
+clear_logs
+adb shell settings put system accelerometer_rotation 0
+adb shell settings put system user_rotation 1
+wait_for "VYT_ROTATED" 10 || fail "el botón no se reubicó al girar"
+sleep 1.5
+shot 09-horizontal
+expand
+read_pos
+read -r SW SH <<<"$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1 | tr 'x' ' ')"
+(( PX < (SW > SH ? SW : SH) )) || fail "botón fuera de pantalla en horizontal"
+for v in 1.50 1.75; do
+  clear_logs
+  tap "$PX" "$PY"
+  expect_speed $v
+  [[ "$(last 'VYT_COVER on')" == *"mode=card"* ]] || fail "en horizontal debía tapar solo la zona del menú: $(last 'VYT_COVER on')"
+done
+[[ "$(last 'VYT_COVER on')" == *"src=learned"* ]] || fail "no usó la zona aprendida del menú"
+adb shell settings put system user_rotation 0
+wait_for "VYT_ROTATED" 10 || fail "no se reubicó al volver a vertical"
+sleep 1
+ok "en horizontal funciona y tapa solo donde sale el menú"
 
 echo "== 13. Salir de YouTube → desaparece; volver → reaparece"
 clear_logs

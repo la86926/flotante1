@@ -71,7 +71,29 @@ class Automator {
         this.h = s.h;
     }
 
-    void setSpeed(float t, MediaController c, Done d) {
+    /** Velocidad directa por la sesión multimedia (sin tocar nada). null = aún no se sabe. */
+    private Boolean sessionWorks;
+
+    void trySession(float t, MediaController c, java.util.function.Consumer<Boolean> cb) {
+        if (c == null || Build.VERSION.SDK_INT < 29 || Boolean.FALSE.equals(sessionWorks)) { cb.accept(false); return; }
+        try {
+            PlaybackState st = c.getPlaybackState();
+            if (st == null || Math.abs(st.getPlaybackSpeed() - t) < 0.02f) { cb.accept(false); return; }
+            c.getTransportControls().setPlaybackSpeed(t);
+            h.postDelayed(() -> {
+                PlaybackState s2 = c.getPlaybackState();
+                boolean ok = s2 != null && Math.abs(s2.getPlaybackSpeed() - t) < 0.02f;
+                sessionWorks = ok;
+                Log.i(SpeedService.TAG, "VYT_SESSION_SPEED " + (ok ? "si" : "no"));
+                cb.accept(ok);
+            }, 600);
+        } catch (Exception e) {
+            sessionWorks = false;
+            cb.accept(false);
+        }
+    }
+
+    void setSpeed(float t, Done d) {
         busy = true;
         done = d;
         target = t;
@@ -82,27 +104,22 @@ class Automator {
         menuItemText = null;
         menuItemBounds = null;
         beforeWindows = null;
+        learned = null;
         runId++;
         deadline = SystemClock.uptimeMillis() + 10000;
-
-        if (c != null && Build.VERSION.SDK_INT >= 29) {
-            try {
-                PlaybackState st = c.getPlaybackState();
-                if (st != null && (st.getActions() & PlaybackState.ACTION_SET_PLAYBACK_SPEED) != 0) {
-                    c.getTransportControls().setPlaybackSpeed(t);
-                    final int id = runId;
-                    h.postDelayed(() -> {
-                        if (id != runId) return;
-                        PlaybackState s2 = c.getPlaybackState();
-                        if (s2 != null && Math.abs(s2.getPlaybackSpeed() - t) < 0.02f) finish(true, t, "session");
-                        else stepStart();
-                    }, 700);
-                    return;
-                }
-            } catch (Exception ignored) { }
-        }
         stepStart();
     }
+
+    /** Recuerda dónde aparece el menú de YouTube, para tapar solo esa zona la próxima vez. */
+    private Rect learned;
+
+    private void learn(Snap sn) {
+        Rect r = sn.menuRect(beforeWindows);
+        if (r == null || r.isEmpty()) return;
+        if (learned == null) learned = new Rect(r); else learned.union(r);
+    }
+
+    Rect playerRect() { return snap().player(); }
 
     // ---------- Pasos ----------
 
@@ -144,6 +161,7 @@ class Automator {
             if (sn.panelOpen()) { stepPanel(); return true; }
             AccessibilityNodeInfo item = sn.speedItem(beforeWindows);
             if (item != null) {
+                learn(sn);
                 menuItemText = String.valueOf(item.getText() != null ? item.getText() : item.getContentDescription());
                 menuItemBounds = new Rect();
                 item.getBoundsInScreen(menuItemBounds);
@@ -177,6 +195,7 @@ class Automator {
             h.postDelayed(this::stepPanel, 200);
             return;
         }
+        learn(sn);
         float avail = sn.maxAvailable();
         float goal = target;
         if (!Float.isNaN(avail) && goal > avail + 0.001f) goal = avail;
@@ -279,6 +298,10 @@ class Automator {
 
     private void finish(boolean ok, float speed, String via) {
         if (!busy) return;
+        if (learned != null) {
+            s.overlay.saveRegion(learned);
+            Log.i(SpeedService.TAG, "VYT_LEARN rect=" + learned.toShortString());
+        }
         busy = false;
         runId++;
         Done d = done;
@@ -395,6 +418,44 @@ class Automator {
                     if (c != null) q.add(c);
                 }
             }
+        }
+
+        /** Zona que ocupa el menú de velocidad / de opciones en pantalla. */
+        Rect menuRect(java.util.Set<Integer> before) {
+            DisplayMetrics dm = s.getResources().getDisplayMetrics();
+            float screenArea = (float) dm.widthPixels * dm.heightPixels;
+            Rect u = null;
+            if (before != null) {
+                try {
+                    for (AccessibilityWindowInfo w : s.getWindows()) {
+                        if (before.contains(w.getId())) continue;
+                        AccessibilityNodeInfo r = w.getRoot();
+                        if (r == null || !SpeedService.YT.equals(String.valueOf(r.getPackageName()))) continue;
+                        Rect b = new Rect();
+                        w.getBoundsInScreen(b);
+                        if ((float) b.width() * b.height() > screenArea * 0.7f) continue; // ventana a pantalla completa
+                        if (u == null) u = b; else u.union(b);
+                    }
+                } catch (Exception ignored) { }
+            }
+            if (u != null) return u;
+            List<AccessibilityNodeInfo> seeds = new ArrayList<>(values());
+            AccessibilityNodeInfo it = speedItem(before);
+            if (it != null) seeds.add(it);
+            for (AccessibilityNodeInfo n : seeds) {
+                Rect best = new Rect();
+                n.getBoundsInScreen(best);
+                AccessibilityNodeInfo c = n.getParent();
+                for (int i = 0; i < 8 && c != null; i++) {
+                    Rect b = new Rect();
+                    c.getBoundsInScreen(b);
+                    if ((float) b.width() * b.height() > screenArea * 0.7f) break;
+                    best = b;
+                    c = c.getParent();
+                }
+                if (u == null) u = best; else u.union(best);
+            }
+            return u;
         }
 
         Rect player() {

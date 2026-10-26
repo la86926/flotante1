@@ -39,7 +39,7 @@ public class PlayerActivity extends Activity {
     private boolean playing = true;
     private int dialogs = 0;
 
-    private FrameLayout controls;
+    private FrameLayout controls, player;
     private TextView panelValue;
     private SeekBar panelBar;
     private boolean updatingBar;
@@ -59,12 +59,12 @@ public class PlayerActivity extends Activity {
         root.setBackgroundColor(Color.WHITE);
 
         int w = getResources().getDisplayMetrics().widthPixels;
-        FrameLayout player = new FrameLayout(this);
+        player = new FrameLayout(this);
         player.setId(R.id.player_view);
         player.setBackgroundColor(Color.BLACK);
         player.setContentDescription("Reproductor de video");
         player.setOnClickListener(v -> toggleControls());
-        root.addView(player, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, w * 9 / 16));
+        root.addView(player, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, playerHeight()));
 
         // Barra de tiempo del video (señuelo: no debe moverse)
         SeekBar time = new SeekBar(this);
@@ -134,6 +134,21 @@ public class PlayerActivity extends Activity {
         session.release();
         Log.i(T, "FAKEYT player closed");
         super.onDestroy();
+    }
+
+    // Como YouTube: en horizontal el video ocupa toda la pantalla.
+    private int playerHeight() {
+        android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+        return dm.widthPixels > dm.heightPixels ? ViewGroup.LayoutParams.MATCH_PARENT : dm.widthPixels * 9 / 16;
+    }
+
+    @Override
+    public void onConfigurationChanged(android.content.res.Configuration c) {
+        super.onConfigurationChanged(c);
+        ViewGroup.LayoutParams lp = player.getLayoutParams();
+        lp.height = playerHeight();
+        player.setLayoutParams(lp);
+        Log.i(T, "FAKEYT rotated");
     }
 
     @Override

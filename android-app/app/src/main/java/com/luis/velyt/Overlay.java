@@ -4,6 +4,13 @@ import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
+import android.graphics.RectF;
+import android.graphics.Region;
+import android.hardware.display.DisplayManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -51,16 +58,16 @@ class Overlay {
     boolean shown;
 
     // Cubierta
-    private ImageView coverView;
-    private Bitmap coverBitmap;
+    private View coverView;
     boolean covered;
+    private int lastSW, lastSH;
 
     Overlay(SpeedService s) {
         this.s = s;
         wm = (WindowManager) s.getSystemService(Context.WINDOW_SERVICE);
         prefs = s.getSharedPreferences("overlay", Context.MODE_PRIVATE);
         slop = ViewConfiguration.get(s).getScaledTouchSlop();
-        mode = prefs.getBoolean("min", false) ? MODE_BUBBLE : MODE_PANEL;
+        mode = MODE_BUBBLE; // cada video empieza en burbuja
 
         lp = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -166,6 +173,46 @@ class Overlay {
         });
 
         setSpeed(1f);
+        Point sc = screen();
+        lastSW = sc.x;
+        lastSH = sc.y;
+    }
+
+    void toBubble() { setMode(MODE_BUBBLE); }
+
+    Point screen() {
+        Point p = new Point();
+        try {
+            ((DisplayManager) s.getSystemService(Context.DISPLAY_SERVICE))
+                    .getDisplay(Display.DEFAULT_DISPLAY).getRealSize(p);
+        } catch (Exception e) {
+            DisplayMetrics dm = s.getResources().getDisplayMetrics();
+            p.set(dm.widthPixels, dm.heightPixels);
+        }
+        return p;
+    }
+
+    /** Al girar el teléfono, el botón queda en el mismo lugar relativo de la pantalla. */
+    void rotated() {
+        Point sc = screen();
+        if (lastSW > 0 && (sc.x != lastSW || sc.y != lastSH)) {
+            View v = current != null ? current : viewFor(mode);
+            int w = v.getWidth() > 0 ? v.getWidth() : dp(56);
+            int hh = v.getHeight() > 0 ? v.getHeight() : dp(56);
+            float fx = (lp.x + w / 2f) / lastSW, fy = (lp.y + hh / 2f) / lastSH;
+            lp.x = Math.round(fx * sc.x - w / 2f);
+            lp.y = Math.round(fy * sc.y - hh / 2f);
+            lastSW = sc.x;
+            lastSH = sc.y;
+            uncover(); // la foto ya no corresponde
+            if (shown) {
+                try { wm.updateViewLayout(current, lp); } catch (Exception ignored) { }
+            }
+            reclamp();
+            savePos();
+            Log.i(SpeedService.TAG, "VYT_ROTATED " + sc.x + "x" + sc.y);
+            if (shown) current.postDelayed(this::logPos, 300);
+        }
     }
 
     // ---------- Mostrar / ocultar ----------
@@ -212,9 +259,9 @@ class Overlay {
         // Mantiene alineado el borde derecho (donde está la X / la burbuja).
         if (oldW > 0) lp.x = lp.x + oldW - newW;
         mode = m;
-        if (m != MODE_CLOSE) prefs.edit().putBoolean("min", m == MODE_BUBBLE).apply();
         Log.i(SpeedService.TAG, "VYT_MODE " + modeName());
         if (wasShown) show();
+        if (coverView != null) coverView.invalidate();
     }
 
     private String modeName() {
@@ -222,57 +269,72 @@ class Overlay {
     }
 
     // ---------- Cubierta (para que no se vea el menú de YouTube) ----------
+    //
+    // Se tapa SOLO la zona donde sale el menú, nunca el video:
+    //  - Video arriba (vertical): foto de la parte de abajo (título, comentarios: no se mueve).
+    //  - Video a pantalla completa: tarjeta oscura con la velocidad sobre la zona del menú.
+    // El botón queda visible y tocable por un hueco con su misma forma.
 
-    /** Toma una foto de la pantalla, la pone encima de todo y luego ejecuta {@code then}. */
-    @android.annotation.TargetApi(30)
     void cover(Runnable then) {
-        if (covered || Build.VERSION.SDK_INT < 30 || !shown) { then.run(); return; }
+        if (covered || !shown) { then.run(); return; }
+        Point sc = screen();
+        boolean land = sc.x > sc.y;
+        Rect player = s.automator.playerRect();
+        Rect learned = region(land);
+        Rect r;
+        boolean top = player != null && player.height() < sc.y * 0.6f && player.bottom < sc.y * 0.65f;
+        if (top) {
+            r = new Rect(0, player.bottom, sc.x, sc.y);
+            if (learned != null) r.union(learned);
+        } else if (learned != null) {
+            r = new Rect(learned);
+        } else {
+            r = new Rect((int) (sc.x * 0.15f), (int) (sc.y * 0.25f), (int) (sc.x * 0.85f), sc.y);
+        }
+        if (!r.intersect(0, 0, sc.x, sc.y)) { then.run(); return; }
+        String info = " top=" + r.top + " playerBottom=" + (player != null ? player.bottom : -1)
+                + " src=" + (learned != null ? "learned" : "default");
+        if (top && Build.VERSION.SDK_INT >= 30) shot(r, info, then);
+        else { addCover(null, r, "card" + info); then.run(); }
+    }
+
+    @android.annotation.TargetApi(30)
+    private void shot(Rect r, String info, Runnable then) {
         try {
             s.takeScreenshot(Display.DEFAULT_DISPLAY, s.getMainExecutor(),
                     new AccessibilityService.TakeScreenshotCallback() {
                         @Override
-                        public void onSuccess(AccessibilityService.ScreenshotResult r) {
+                        public void onSuccess(AccessibilityService.ScreenshotResult res) {
+                            Bitmap bm = null;
                             try {
-                                HardwareBuffer hb = r.getHardwareBuffer();
-                                Bitmap hw = Bitmap.wrapHardwareBuffer(hb, r.getColorSpace());
-                                Bitmap bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, true) : null;
+                                HardwareBuffer hb = res.getHardwareBuffer();
+                                Bitmap hw = Bitmap.wrapHardwareBuffer(hb, res.getColorSpace());
+                                bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, false) : null;
                                 hb.close();
-                                if (bm != null) addCover(bm);
                             } catch (Exception e) {
                                 Log.e(SpeedService.TAG, "VYT_ERR cover " + e);
                             }
+                            addCover(bm, r, (bm != null ? "shot" : "card") + info);
                             then.run();
                         }
 
                         @Override
                         public void onFailure(int code) {
-                            Log.i(SpeedService.TAG, "VYT_COVER fallo=" + code);
+                            addCover(null, r, "card" + info);
                             then.run();
                         }
                     });
         } catch (Exception e) {
+            addCover(null, r, "card" + info);
             then.run();
         }
     }
 
-    @android.annotation.TargetApi(30)
-    private void addCover(Bitmap bm) {
-        if (covered) { bm.recycle(); return; } // nunca dos cubiertas
-        // "Ventana" transparente donde está el botón: el botón real sigue visible y
-        // tocable debajo (la cubierta no recibe toques). Así nunca se quita el botón
-        // y no se pierden toques rápidos.
-        Rect hole = screenRect();
-        if (hole != null) {
-            android.graphics.Paint clear = new android.graphics.Paint();
-            clear.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR));
-            new android.graphics.Canvas(bm).drawRect(hole, clear);
-        }
-        coverView = new ImageView(s);
-        coverView.setScaleType(ImageView.ScaleType.FIT_XY);
-        coverView.setImageBitmap(bm);
-        coverBitmap = bm;
+    private void addCover(Bitmap bm, Rect r, String desc) {
+        if (covered || !s.ytForeground) return; // nunca dos cubiertas, ni sobre otra app
+        CoverView v = new CoverView(bm, r);
         WindowManager.LayoutParams c = new WindowManager.LayoutParams(
-                bm.getWidth(), bm.getHeight(),
+                r.width(), r.height(),
                 WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -280,18 +342,18 @@ class Overlay {
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
         c.gravity = Gravity.TOP | Gravity.START;
-        c.x = 0;
-        c.y = 0;
-        c.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        c.x = r.left;
+        c.y = r.top;
+        if (Build.VERSION.SDK_INT >= 28) {
+            c.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        }
         try {
-            wm.addView(coverView, c);
+            wm.addView(v, c);
+            coverView = v;
             covered = true;
-            Log.i(SpeedService.TAG, "VYT_COVER on");
+            Log.i(SpeedService.TAG, "VYT_COVER on mode=" + desc);
         } catch (Exception e) {
             Log.e(SpeedService.TAG, "VYT_ERR addCover " + e);
-            coverView = null;
-            bm.recycle();
-            coverBitmap = null;
         }
     }
 
@@ -299,9 +361,69 @@ class Overlay {
         if (!covered) return;
         try { wm.removeView(coverView); } catch (Exception ignored) { }
         covered = false;
-        coverView = null;
-        coverBitmap = null; // sin recycle(): la vista puede estar dibujándose aún
+        coverView = null; // sin recycle(): la vista puede estar dibujándose aún
         Log.i(SpeedService.TAG, "VYT_COVER off");
+    }
+
+    /** Forma exacta del botón (para el hueco de la cubierta). */
+    private Path holePath() {
+        Path p = new Path();
+        Rect r = screenRect();
+        if (r == null) return p;
+        RectF f = new RectF(r);
+        if (mode == MODE_BUBBLE) {
+            p.addOval(f, Path.Direction.CW);
+        } else {
+            float rad = mode == MODE_CLOSE ? dp(18) : Math.min(dp(29), f.height() / 2f);
+            p.addRoundRect(f, rad, rad, Path.Direction.CW);
+        }
+        return p;
+    }
+
+    void saveRegion(Rect r) {
+        Point sc = screen();
+        prefs.edit().putString(sc.x > sc.y ? "reg_land" : "reg_port", r.flattenToString()).apply();
+    }
+
+    private Rect region(boolean land) {
+        String v = prefs.getString(land ? "reg_land" : "reg_port", null);
+        return v == null ? null : Rect.unflattenFromString(v);
+    }
+
+    private class CoverView extends View {
+        private final Bitmap bm;
+        private final Rect r;
+        private final Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint tx = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int[] loc = new int[2];
+
+        CoverView(Bitmap bm, Rect r) {
+            super(s);
+            this.bm = bm;
+            this.r = new Rect(r);
+            bg.setColor(0xFF1C1C1E);
+            tx.setColor(Color.WHITE);
+            tx.setTextAlign(Paint.Align.CENTER);
+            tx.setTypeface(Typeface.DEFAULT_BOLD);
+            tx.setTextSize(34 * s.getResources().getDisplayMetrics().scaledDensity);
+        }
+
+        @Override
+        protected void onDraw(Canvas c) {
+            getLocationOnScreen(loc);
+            c.save();
+            c.translate(-loc[0], -loc[1]); // a partir de aquí, coordenadas de pantalla
+            Path hole = holePath();
+            if (Build.VERSION.SDK_INT >= 26) c.clipOutPath(hole);
+            else c.clipPath(hole, Region.Op.DIFFERENCE);
+            if (bm != null) {
+                c.drawBitmap(bm, r, r, null);
+            } else {
+                c.drawRoundRect(new RectF(r), dp(20), dp(20), bg);
+                c.drawText(fmt(s.target), r.exactCenterX(), r.exactCenterY() - (tx.descent() + tx.ascent()) / 2f, tx);
+            }
+            c.restore();
+        }
     }
 
     // ---------- Velocidad ----------
@@ -310,6 +432,7 @@ class Overlay {
         String t = fmt(v);
         label.setText(t);
         bubble.setText(t);
+        if (coverView != null) coverView.invalidate();
     }
 
     static String fmt(float v) {
@@ -347,11 +470,11 @@ class Overlay {
     }
 
     private int[] clampXY(int x, int y) {
-        DisplayMetrics dm = s.getResources().getDisplayMetrics();
+        Point sc = screen();
         int w = current != null && current.getWidth() > 0 ? current.getWidth() : dp(56);
         int hh = current != null && current.getHeight() > 0 ? current.getHeight() : dp(56);
-        x = Math.max(0, Math.min(x, dm.widthPixels - w));
-        y = Math.max(0, Math.min(y, dm.heightPixels - hh));
+        x = Math.max(0, Math.min(x, sc.x - w));
+        y = Math.max(0, Math.min(y, sc.y - hh));
         return new int[]{x, y};
     }
 
@@ -412,6 +535,7 @@ class Overlay {
                         lp.x = c[0];
                         lp.y = c[1];
                         try { wm.updateViewLayout(current, lp); } catch (Exception ignored) { }
+                        if (coverView != null) coverView.invalidate();
                     }
                     return true;
                 }

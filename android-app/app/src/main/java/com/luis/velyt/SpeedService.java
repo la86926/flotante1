@@ -38,6 +38,8 @@ public class SpeedService extends AccessibilityService {
     boolean pending;
     boolean scheduled;
     boolean covering;
+    boolean needBubble = true;
+    String shownKey;
     long leftYtAt;
     float lastSessionSpeed = -1f;
     boolean connected;
@@ -98,7 +100,7 @@ public class SpeedService extends AccessibilityService {
     @Override
     public void onConfigurationChanged(Configuration c) {
         super.onConfigurationChanged(c);
-        if (overlay != null) h.postDelayed(overlay::reclamp, 300);
+        if (overlay != null) h.postDelayed(overlay::rotated, 300);
     }
 
     @Override
@@ -259,9 +261,16 @@ public class SpeedService extends AccessibilityService {
             }
         }
 
+        // Cada video nuevo empieza en burbuja.
+        String key = videoKey();
+        if (!active && !automator.busy && !covering) needBubble = true;
+        if (key != null && shownKey != null && !key.equals(shownKey)) needBubble = true;
+
         boolean dismissed = hideVideo || hideUntilReopen;
         boolean want = ytForeground && !dismissed && (active || automator.busy);
         if (want) {
+            if (needBubble) { overlay.toBubble(); needBubble = false; }
+            if (key != null) shownKey = key;
             h.removeCallbacks(hideRun);
             hidePending = false;
             overlay.show();
@@ -325,29 +334,44 @@ public class SpeedService extends AccessibilityService {
         if (automator.busy || covering) { pending = true; return; }
         pending = false;
         h.removeCallbacks(uncoverRun);
-        // Primero se tapa la pantalla con una foto de ella misma; luego se toca el menú.
+        final float t = target;
         covering = true;
-        overlay.cover(() -> { covering = false; runAutomation(); });
+        // 1) Si YouTube acepta el cambio directo, no se toca nada en pantalla.
+        automator.trySession(t, yt, ok -> {
+            if (ok) {
+                covering = false;
+                Log.i(TAG, String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=true via=session", t, t));
+                if (pending) { pending = false; if (Math.abs(target - t) > 0.001f) { apply(); return; } }
+                done(t, true, t);
+                return;
+            }
+            // 2) Si no: se tapa la zona del menú y se usa el menú de YouTube.
+            overlay.cover(() -> { covering = false; runAutomation(); });
+        });
     }
 
     private void runAutomation() {
         final float t = target;
-        automator.setSpeed(t, yt, r -> {
+        automator.setSpeed(t, r -> {
             Log.i(TAG, String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=%b via=%s",
                     t, r.speed, r.ok, r.via));
-            if (r.ok && Math.abs(target - t) < 0.001f) {
-                target = clamp(r.speed);
-                overlay.setSpeed(target);
-            } else if (!r.ok) {
-                overlay.flash();
-            }
             if (pending) {
                 pending = false;
                 if (Math.abs(target - t) > 0.001f) { runAutomation(); return; }
             }
-            // Se destapa cuando YouTube terminó de cerrar su menú.
-            h.postDelayed(uncoverRun, 250);
-            evaluate();
+            done(t, r.ok, r.speed);
         });
+    }
+
+    private void done(float t, boolean ok, float speed) {
+        if (ok && Math.abs(target - t) < 0.001f) {
+            target = clamp(speed);
+            overlay.setSpeed(target);
+        } else if (!ok) {
+            overlay.flash();
+        }
+        // Se destapa cuando YouTube terminó de cerrar su menú.
+        h.postDelayed(uncoverRun, 250);
+        evaluate();
     }
 }
