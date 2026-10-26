@@ -37,6 +37,8 @@ public class SpeedService extends AccessibilityService {
     float target = 1f;
     boolean pending;
     boolean scheduled;
+    boolean covering;
+    long leftYtAt;
     float lastSessionSpeed = -1f;
     boolean connected;
 
@@ -231,7 +233,13 @@ public class SpeedService extends AccessibilityService {
         if (overlay == null) return;
         boolean active = videoActive();
 
-        if (hideUntilReopen && !ytForeground) {
+        long nowMs = System.currentTimeMillis();
+        if (ytForeground) leftYtAt = 0;
+        else if (leftYtAt == 0) leftYtAt = nowMs;
+        // Fuera de YouTube: nunca dejar la foto encima de otra app.
+        if (!ytForeground && overlay.covered) overlay.uncover();
+        // "Al reabrir YouTube": solo cuenta si se salió de YouTube de verdad (1.5 s).
+        if (hideUntilReopen && !ytForeground && nowMs - leftYtAt > 1500) {
             hideUntilReopen = false;
             Log.i(TAG, "VYT_RESTORE reabrir");
         }
@@ -314,11 +322,12 @@ public class SpeedService extends AccessibilityService {
 
     void apply() {
         scheduled = false;
-        if (automator.busy) { pending = true; return; }
+        if (automator.busy || covering) { pending = true; return; }
         pending = false;
         h.removeCallbacks(uncoverRun);
         // Primero se tapa la pantalla con una foto de ella misma; luego se toca el menú.
-        overlay.cover(this::runAutomation);
+        covering = true;
+        overlay.cover(() -> { covering = false; runAutomation(); });
     }
 
     private void runAutomation() {

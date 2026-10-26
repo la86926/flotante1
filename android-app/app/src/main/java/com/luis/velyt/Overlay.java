@@ -257,6 +257,7 @@ class Overlay {
 
     @android.annotation.TargetApi(30)
     private void addCover(Bitmap bm) {
+        if (covered) { bm.recycle(); return; } // nunca dos cubiertas
         // "Ventana" transparente donde está el botón: el botón real sigue visible y
         // tocable debajo (la cubierta no recibe toques). Así nunca se quita el botón
         // y no se pierden toques rápidos.
@@ -299,7 +300,7 @@ class Overlay {
         try { wm.removeView(coverView); } catch (Exception ignored) { }
         covered = false;
         coverView = null;
-        if (coverBitmap != null) { coverBitmap.recycle(); coverBitmap = null; }
+        coverBitmap = null; // sin recycle(): la vista puede estar dibujándose aún
         Log.i(SpeedService.TAG, "VYT_COVER off");
     }
 
