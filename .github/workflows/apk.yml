@@ -99,6 +99,20 @@ jobs:
           path: resultados-api${{ matrix.api }}/
           retention-days: 30
 
+      - name: Guardar resultados en la rama ci-api${{ matrix.api }}
+        if: always()
+        run: |
+          D=resultados-api${{ matrix.api }}
+          mkdir -p "$D"
+          echo "${{ github.sha }}" > "$D/commit.txt"
+          cd "$D"
+          git init -q -b ci-api${{ matrix.api }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Resultados de prueba ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ci-api${{ matrix.api }}
+
   release:
     needs: [build, test]
     runs-on: ubuntu-24.04

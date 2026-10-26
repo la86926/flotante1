@@ -14,8 +14,14 @@ logs() { adb logcat -d -v brief -s VYT:I FAKEYT:I; }
 save_logs() { logs >> "$OUT/logcat.txt"; }
 fail() {
   echo "::error::FALLO: $*"
+  echo "FALLO: $*" > "$OUT/resultado.txt"
   save_logs
   adb logcat -d -v brief AndroidRuntime:E '*:S' >> "$OUT/crash.txt" || true
+  adb logcat -d -v brief -t 3000 > "$OUT/logcat-completo.txt" || true
+  adb shell dumpsys accessibility > "$OUT/dumpsys-accessibility.txt" 2>&1 || true
+  adb shell settings get secure enabled_accessibility_services > "$OUT/a11y-settings.txt" 2>&1 || true
+  adb shell dumpsys window windows > "$OUT/dumpsys-window.txt" 2>&1 || true
+  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui.xml" >/dev/null 2>&1 || true
   shot "fallo"
   exit 1
 }
