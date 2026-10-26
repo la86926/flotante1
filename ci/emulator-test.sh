@@ -10,8 +10,12 @@ YT=com.google.android.youtube
 PASS=0
 
 shot() { adb exec-out screencap -p > "$OUT/$1.png" 2>/dev/null || true; }
-logs() { adb logcat -d -v brief -s VYT:I FAKEYT:I; }
-save_logs() { logs >> "$OUT/logcat.txt"; }
+MARK=0
+# Todo el registro (no se borra nunca; cada paso deja una marca).
+alllogs() { adb logcat -d -v brief -s VYT:I FAKEYT:I; }
+# Solo lo ocurrido desde la última marca.
+logs() { alllogs | awk -v m="VYT_MARK_$MARK" 'f; index($0, m) {f=1}'; }
+save_logs() { alllogs > "$OUT/logcat.txt"; }
 fail() {
   echo "::error::FALLO: $*"
   echo "FALLO: $*" > "$OUT/resultado.txt"
@@ -26,7 +30,11 @@ fail() {
   exit 1
 }
 ok() { PASS=$((PASS+1)); echo "✔ $*"; }
-clear_logs() { save_logs; adb logcat -c; }
+clear_logs() {
+  MARK=$((MARK+1))
+  adb shell log -p i -t VYT "VYT_MARK_$MARK"
+  local i; for ((i=0; i<20; i++)); do alllogs | grep -q "VYT_MARK_$MARK" && return 0; sleep 0.1; done
+}
 wait_for() { # patrón, segundos
   local pat="$1" t="${2:-20}" i
   for ((i=0; i<t*4; i++)); do
@@ -36,6 +44,7 @@ wait_for() { # patrón, segundos
   return 1
 }
 last() { logs | grep -E "$1" | tail -1; }
+last_any() { alllogs | grep -E "$1" | tail -1; }
 xy() { echo "$2" | grep -oE "$1=[0-9]+,[0-9]+" | head -1 | cut -d= -f2 | tr ',' ' '; }
 tap() { adb shell input tap "$1" "$2"; }
 no_decoys() {
@@ -49,8 +58,10 @@ menus_closed() {
   [[ -z "$d" || "$d" == *"dialogs=0"* ]] || fail "quedó un menú abierto ($d)"
 }
 read_pos() {
-  wait_for "VYT_POS mode=expanded" 8 || fail "no se publicó la posición de los botones"
-  local P; P=$(last "VYT_POS mode=expanded")
+  local i; for ((i=0; i<32; i++)); do alllogs | grep -q "VYT_POS mode=expanded" && break; sleep 0.25; done
+  sleep 0.3
+  local P; P=$(last_any "VYT_POS mode=expanded")
+  [[ -n "$P" ]] || fail "no se publicó la posición de los botones"
   read -r MX MY <<<"$(xy minus "$P")"
   read -r LX LY <<<"$(xy label "$P")"
   read -r PX PY <<<"$(xy plus "$P")"
@@ -84,7 +95,9 @@ expect_speed() { # objetivo con 2 decimales, segundos
 echo "== Instalación"
 adb install -r "$APP" || fail "no se pudo instalar Velocidad YT"
 adb install -r "$FAKE" || fail "no se pudo instalar la YouTube de prueba"
+adb logcat -G 16M || true
 adb logcat -c
+clear_logs
 adb shell cmd notification allow_listener com.luis.velyt/com.luis.velyt.MediaListener || true
 adb shell settings put secure enabled_accessibility_services com.luis.velyt/com.luis.velyt.SpeedService
 adb shell settings put secure accessibility_enabled 1
