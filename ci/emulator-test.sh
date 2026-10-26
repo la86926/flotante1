@@ -6,6 +6,10 @@ set -uo pipefail
 
 APP="$1"; FAKE="$2"; OUT="${3:-shots}"
 mkdir -p "$OUT"
+# Guarda toda la salida de la prueba y, pase lo que pase, el registro al terminar.
+exec > >(tee -a "$OUT/salida.txt") 2>&1
+trap 'adb logcat -d -v brief -s VYT:I FAKEYT:I > "$OUT/logcat.txt" 2>/dev/null; adb logcat -d -v brief AndroidRuntime:E "*:S" > "$OUT/crash.txt" 2>/dev/null' EXIT
+echo "inicio $(date -u)"
 YT=com.google.android.youtube
 PASS=0
 
