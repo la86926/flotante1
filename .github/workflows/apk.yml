@@ -40,7 +40,20 @@ jobs:
             echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
             export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
           fi
-          gradle :app:assembleRelease :fakeyt:assembleDebug --no-daemon --stacktrace
+          set -o pipefail
+          gradle :app:assembleRelease :fakeyt:assembleDebug --no-daemon 2>&1 | tee $RUNNER_TEMP/build.log
+
+      - name: Guardar error de compilación en la rama ci-build
+        if: failure()
+        run: |
+          mkdir -p cb && cd cb
+          grep -nE "error:|e: |warning:.*Lint|FAILED|What went wrong" -A4 $RUNNER_TEMP/build.log | head -150 > errores.txt || true
+          tail -80 $RUNNER_TEMP/build.log > final.txt
+          git init -q -b ci-build
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "build ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ci-build
 
       - name: Verificar APK
         run: |
