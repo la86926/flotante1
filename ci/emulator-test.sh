@@ -129,14 +129,16 @@ wait_for "VYT_MODE bubble" 5 || fail "no se minimizó"
 wait_for "VYT_POS mode=bubble" 5 || fail "no se publicó la posición de la burbuja"
 read -r BX BY <<<"$(xy bubble "$(last 'VYT_POS mode=bubble')")"
 shot 04-burbuja
-TX=$((BX > 400 ? BX - 300 : BX + 300)); TY=$((BY + 350))
+read -r SW SH <<<"$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1 | tr 'x' ' ')"
+TX=$((BX > SW / 2 ? BX - SW / 3 : BX + SW / 3)); TY=$((BY < SH / 2 ? BY + SH / 4 : BY - SH / 4))
+echo "pantalla ${SW}x${SH}: arrastrar burbuja $BX,$BY → $TX,$TY"
 adb shell input swipe "$BX" "$BY" "$TX" "$TY" 600
 wait_for "VYT_MOVED" 5 || fail "la burbuja no se pudo arrastrar"
 logs | grep -q "VYT_MODE expanded" && fail "arrastrar no debe abrir la burbuja"
 sleep 0.5
 read -r B2X B2Y <<<"$(xy bubble "$(last 'VYT_POS mode=bubble')")"
 DX=$(( B2X - BX )); DY=$(( B2Y - BY ))
-(( ${DX#-} > 150 && ${DY#-} > 150 )) || fail "la burbuja no se movió lo suficiente ($BX,$BY → $B2X,$B2Y)"
+(( ${DX#-} > SW / 5 && ${DY#-} > SH / 6 )) || fail "la burbuja no se movió lo suficiente ($BX,$BY → $B2X,$B2Y)"
 shot 05-burbuja-movida
 tap "$B2X" "$B2Y"
 wait_for "VYT_MODE expanded" 5 || fail "tocar la burbuja no abrió los controles"
