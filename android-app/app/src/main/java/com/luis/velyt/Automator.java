@@ -60,6 +60,7 @@ class Automator {
     private int playerTaps;
     private boolean triedAdditional;
     private int buttonRounds;
+    private int panelReads;
     private int runId;
     private String menuItemText;
     private Rect menuItemBounds;
@@ -77,6 +78,7 @@ class Automator {
         playerTaps = 0;
         triedAdditional = false;
         buttonRounds = 0;
+        panelReads = 0;
         menuItemText = null;
         menuItemBounds = null;
         beforeWindows = null;
@@ -167,7 +169,14 @@ class Automator {
     }
 
     private void stepPanel() {
+        if (!busy) return;
         Snap sn = snap();
+        // El panel puede estar aún dibujándose: esperar a poder leer la velocidad.
+        if (sn.current() == null && panelReads < 5) {
+            panelReads++;
+            h.postDelayed(this::stepPanel, 200);
+            return;
+        }
         float avail = sn.maxAvailable();
         float goal = target;
         if (!Float.isNaN(avail) && goal > avail + 0.001f) goal = avail;
