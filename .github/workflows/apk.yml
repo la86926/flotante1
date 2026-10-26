@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [30, 34]
+        api: [30, 34, 36, 37]
     steps:
       - uses: actions/checkout@v4
 
@@ -129,5 +129,5 @@ jobs:
           gh release delete apk-latest --yes --cleanup-tag || true
           gh release create apk-latest out/VelocidadYT.apk \
             --title "Velocidad YT — APK" \
-            --notes "APK probado en emulador (Android 11 y 14). Se actualiza con cada cambio." \
+            --notes "APK probado en emulador (Android 11, 14, 16 y 17). Se actualiza con cada cambio." \
             --latest
