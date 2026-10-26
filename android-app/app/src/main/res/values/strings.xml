@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Velocidad YT</string>
+    <string name="a11y_desc">Muestra un botón flotante cuando reproduces un video en YouTube y cambia la velocidad por ti, abriendo y cerrando el menú de velocidad de YouTube. No lee ni guarda nada más.</string>
+</resources>
