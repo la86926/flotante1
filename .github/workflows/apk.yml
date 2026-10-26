@@ -64,10 +64,12 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-24.04
+    # Android 17 depende de que exista su imagen de emulador; no bloquea la publicación.
+    continue-on-error: ${{ matrix.api == '37.0' }}
     strategy:
       fail-fast: false
       matrix:
-        api: [30, 34, 36, 37]
+        api: ['30', '34', '36', '37.0']
     steps:
       - uses: actions/checkout@v4
 
