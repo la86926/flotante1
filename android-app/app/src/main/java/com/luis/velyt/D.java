@@ -14,7 +14,7 @@ final class D {
     private static final SimpleDateFormat F = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
     static void i(String m) {
-        D.i(m);
+        Log.i(SpeedService.TAG, m);
         synchronized (LINES) {
             LINES.add(F.format(new Date()) + " " + m);
             while (LINES.size() > 250) LINES.poll();
