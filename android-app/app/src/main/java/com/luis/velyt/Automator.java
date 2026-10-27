@@ -348,10 +348,19 @@ class Automator {
             p = landscape ? new Rect(0, 0, dm.widthPixels, dm.heightPixels)
                     : new Rect(0, 0, dm.widthPixels, (int) (dm.widthPixels * 9f / 16f) + dp(30));
         }
-        // Lejos del centro (ahí está pausa/reproducir) y del botón flotante.
-        float x = p.left + p.width() * 0.2f, y = p.top + p.height() * 0.35f;
+        // Lejos del centro (ahí está pausa/reproducir), del botón flotante y de la
+        // zona tapada (Android 16+ no deja pasar toques por debajo de la cubierta).
         Rect ov = s.overlay.screenRect();
-        if (ov != null && ov.contains((int) x, (int) y)) x = p.left + p.width() * 0.8f;
+        Rect cv = s.overlay.coverRect();
+        float[][] spots = {{0.2f, 0.35f}, {0.2f, 0.12f}, {0.8f, 0.12f}, {0.8f, 0.35f}, {0.06f, 0.5f}, {0.94f, 0.5f}};
+        float x = p.left + p.width() * 0.2f, y = p.top + p.height() * 0.35f;
+        for (float[] sp : spots) {
+            int cx = (int) (p.left + p.width() * sp[0]), cy = (int) (p.top + p.height() * sp[1]);
+            if ((ov != null && ov.contains(cx, cy)) || (cv != null && cv.contains(cx, cy))) continue;
+            x = cx;
+            y = cy;
+            break;
+        }
         tap(x, y);
     }
 

@@ -59,6 +59,7 @@ class Overlay {
 
     // Cubierta
     private View coverView;
+    private Rect coverRect;
     boolean covered;
     private int lastSW, lastSH;
 
@@ -350,6 +351,7 @@ class Overlay {
         try {
             wm.addView(v, c);
             coverView = v;
+            coverRect = new Rect(r);
             covered = true;
             Log.i(SpeedService.TAG, "VYT_COVER on mode=" + desc);
         } catch (Exception e) {
@@ -357,10 +359,13 @@ class Overlay {
         }
     }
 
+    Rect coverRect() { return covered ? coverRect : null; }
+
     void uncover() {
         if (!covered) return;
         try { wm.removeView(coverView); } catch (Exception ignored) { }
         covered = false;
+        coverRect = null;
         coverView = null; // sin recycle(): la vista puede estar dibujándose aún
         Log.i(SpeedService.TAG, "VYT_COVER off");
     }
