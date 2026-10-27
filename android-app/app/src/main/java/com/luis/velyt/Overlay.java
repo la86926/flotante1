@@ -211,7 +211,7 @@ class Overlay {
             }
             reclamp();
             savePos();
-            Log.i(SpeedService.TAG, "VYT_ROTATED " + sc.x + "x" + sc.y);
+            D.i("VYT_ROTATED " + sc.x + "x" + sc.y);
             if (shown) current.postDelayed(this::logPos, 300);
         }
     }
@@ -230,11 +230,11 @@ class Overlay {
         try {
             wm.addView(current, lp);
             shown = true;
-            Log.i(SpeedService.TAG, "VYT_STATE overlay=shown mode=" + modeName());
+            D.i("VYT_STATE overlay=shown mode=" + modeName());
             current.post(this::reclamp);
             current.postDelayed(this::logPos, 250);
         } catch (Exception e) {
-            Log.e(SpeedService.TAG, "VYT_ERR addView " + e);
+            D.i("VYT_ERR addView " + e);
         }
     }
 
@@ -243,7 +243,7 @@ class Overlay {
         try { wm.removeView(current); } catch (Exception ignored) { }
         shown = false;
         if (mode == MODE_CLOSE) mode = MODE_PANEL;
-        Log.i(SpeedService.TAG, "VYT_STATE overlay=hidden");
+        D.i("VYT_STATE overlay=hidden");
     }
 
     private void setMode(int m) {
@@ -260,7 +260,7 @@ class Overlay {
         // Mantiene alineado el borde derecho (donde está la X / la burbuja).
         if (oldW > 0) lp.x = lp.x + oldW - newW;
         mode = m;
-        Log.i(SpeedService.TAG, "VYT_MODE " + modeName());
+        D.i("VYT_MODE " + modeName());
         if (wasShown) show();
         if (coverView != null) coverView.invalidate();
     }
@@ -313,7 +313,7 @@ class Overlay {
                                 bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, false) : null;
                                 hb.close();
                             } catch (Exception e) {
-                                Log.e(SpeedService.TAG, "VYT_ERR cover " + e);
+                                D.i("VYT_ERR cover " + e);
                             }
                             addCover(bm, r, (bm != null ? "shot" : "card") + info);
                             then.run();
@@ -353,9 +353,9 @@ class Overlay {
             coverView = v;
             coverRect = new Rect(r);
             covered = true;
-            Log.i(SpeedService.TAG, "VYT_COVER on mode=" + desc);
+            D.i("VYT_COVER on mode=" + desc);
         } catch (Exception e) {
-            Log.e(SpeedService.TAG, "VYT_ERR addCover " + e);
+            D.i("VYT_ERR addCover " + e);
         }
     }
 
@@ -367,7 +367,7 @@ class Overlay {
         covered = false;
         coverRect = null;
         coverView = null; // sin recycle(): la vista puede estar dibujándose aún
-        Log.i(SpeedService.TAG, "VYT_COVER off");
+        D.i("VYT_COVER off");
     }
 
     /** Forma exacta del botón (para el hueco de la cubierta). */
@@ -490,11 +490,11 @@ class Overlay {
     void logPos() {
         if (!shown) return;
         if (mode == MODE_BUBBLE) {
-            Log.i(SpeedService.TAG, "VYT_POS mode=bubble bubble=" + center(bubble));
+            D.i("VYT_POS mode=bubble bubble=" + center(bubble));
         } else if (mode == MODE_CLOSE) {
-            Log.i(SpeedService.TAG, "VYT_POS mode=close next=" + center(optNext) + " reopen=" + center(optReopen));
+            D.i("VYT_POS mode=close next=" + center(optNext) + " reopen=" + center(optReopen));
         } else {
-            Log.i(SpeedService.TAG, "VYT_POS mode=expanded minus=" + center(minus) + " label=" + center(label)
+            D.i("VYT_POS mode=expanded minus=" + center(minus) + " label=" + center(label)
                     + " plus=" + center(plus) + " min=" + center(minimize) + " close=" + center(close));
         }
     }
@@ -548,7 +548,7 @@ class Overlay {
                     v.setAlpha(v == minimize ? 0.85f : 1f);
                     if (dragging) {
                         savePos();
-                        Log.i(SpeedService.TAG, "VYT_MOVED x=" + lp.x + " y=" + lp.y);
+                        D.i("VYT_MOVED x=" + lp.x + " y=" + lp.y);
                         v.postDelayed(Overlay.this::logPos, 150);
                     } else if (onTap != null) {
                         onTap.run();

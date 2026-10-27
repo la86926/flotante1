@@ -84,7 +84,7 @@ class Automator {
                 PlaybackState s2 = c.getPlaybackState();
                 boolean ok = s2 != null && Math.abs(s2.getPlaybackSpeed() - t) < 0.02f;
                 sessionWorks = ok;
-                Log.i(SpeedService.TAG, "VYT_SESSION_SPEED " + (ok ? "si" : "no"));
+                D.i("VYT_SESSION_SPEED " + (ok ? "si" : "no"));
                 cb.accept(ok);
             }, 600);
         } catch (Exception e) {
@@ -201,7 +201,7 @@ class Automator {
         float goal = target;
         if (!Float.isNaN(avail) && goal > avail + 0.001f) goal = avail;
         Float cur = sn.current();
-        Log.i(SpeedService.TAG, String.format(Locale.US, "VYT_PANEL cur=%s max=%s goal=%.2f",
+        D.i(String.format(Locale.US, "VYT_PANEL cur=%s max=%s goal=%.2f",
                 cur, Float.isNaN(avail) ? "?" : String.valueOf(avail), goal));
         if (cur != null && Math.abs(cur - goal) < 0.02f) { closeAndFinish(goal, "ya_estaba"); return; }
 
@@ -283,6 +283,7 @@ class Automator {
     }
 
     private void fail(String why) {
+        try { D.tree = snap().describe(); } catch (Exception ignored) { }
         closeMenus(0, () -> finish(false, s.target, why));
     }
 
@@ -301,7 +302,7 @@ class Automator {
         if (!busy) return;
         if (learned != null) {
             s.overlay.saveRegion(learned);
-            Log.i(SpeedService.TAG, "VYT_LEARN rect=" + learned.toShortString());
+            D.i("VYT_LEARN rect=" + learned.toShortString());
         }
         busy = false;
         runId++;
@@ -362,7 +363,7 @@ class Automator {
             y = cy;
             break;
         }
-        Log.i(SpeedService.TAG, "VYT_TAP player=" + p.toShortString() + " at=" + (int) x + "," + (int) y
+        D.i("VYT_TAP player=" + p.toShortString() + " at=" + (int) x + "," + (int) y
                 + " cover=" + (cv != null ? cv.toShortString() : "-") + " ok=" + tap(x, y));
     }
 
@@ -429,6 +430,32 @@ class Automator {
                     if (c != null) q.add(c);
                 }
             }
+        }
+
+        /** Resumen de la pantalla de YouTube (para el diagnóstico). */
+        String describe() {
+            StringBuilder b = new StringBuilder();
+            int n = 0;
+            for (AccessibilityNodeInfo x : nodes) {
+                String id = x.getViewIdResourceName();
+                CharSequence t = x.getText(), d = x.getContentDescription();
+                if (id == null && t == null && d == null) continue;
+                Rect r = new Rect();
+                x.getBoundsInScreen(r);
+                String c = String.valueOf(x.getClassName());
+                b.append(c.substring(c.lastIndexOf('.') + 1)).append(' ')
+                        .append(id != null ? id.replace(SpeedService.YT + ":id/", "#") : "")
+                        .append(t != null ? " t=\"" + t + "\"" : "")
+                        .append(d != null ? " d=\"" + d + "\"" : "")
+                        .append(' ').append(r.toShortString())
+                        .append(x.isVisibleToUser() ? " v" : " -")
+                        .append(x.isClickable() ? "c" : "")
+                        .append(x.isSelected() || x.isChecked() ? "s" : "")
+                        .append(x.getRangeInfo() != null ? " range=" + x.getRangeInfo().getMin() + ".." + x.getRangeInfo().getMax() + "@" + x.getRangeInfo().getCurrent() : "")
+                        .append('\n');
+                if (++n >= 300) break;
+            }
+            return b.toString();
         }
 
         /** Zona que ocupa el menú de velocidad / de opciones en pantalla. */

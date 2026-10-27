@@ -79,7 +79,7 @@ public class SpeedService extends AccessibilityService {
         audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         trySessions();
         h.post(tick);
-        Log.i(TAG, "VYT_READY");
+        D.i("VYT_READY");
     }
 
     @Override
@@ -124,7 +124,7 @@ public class SpeedService extends AccessibilityService {
             msm.addOnActiveSessionsChangedListener(sessionsCb, cn, h);
             sessionPerm = true;
             onSessions(msm.getActiveSessions(cn));
-            Log.i(TAG, "VYT_SESSIONS ok");
+            D.i("VYT_SESSIONS ok");
         } catch (SecurityException ex) {
             sessionPerm = false;
         }
@@ -228,7 +228,7 @@ public class SpeedService extends AccessibilityService {
     void setYtForeground(boolean b) {
         if (b == ytForeground) return;
         ytForeground = b;
-        Log.i(TAG, "VYT_FG youtube=" + b);
+        D.i("VYT_FG youtube=" + b);
     }
 
     void evaluate() {
@@ -243,7 +243,7 @@ public class SpeedService extends AccessibilityService {
         // "Al reabrir YouTube": solo cuenta si se salió de YouTube de verdad (1.5 s).
         if (hideUntilReopen && !ytForeground && nowMs - leftYtAt > 1500) {
             hideUntilReopen = false;
-            Log.i(TAG, "VYT_RESTORE reabrir");
+            D.i("VYT_RESTORE reabrir");
         }
         if (hideVideo) {
             long now = System.currentTimeMillis();
@@ -251,13 +251,13 @@ public class SpeedService extends AccessibilityService {
             if (hiddenKey == null && k != null) hiddenKey = k;
             if (!active) {
                 if (inactiveSince == 0) inactiveSince = now;
-                if (now - inactiveSince > 2000) { hideVideo = false; Log.i(TAG, "VYT_RESTORE video_terminado"); }
+                if (now - inactiveSince > 2000) { hideVideo = false; D.i("VYT_RESTORE video_terminado"); }
             } else {
                 inactiveSince = 0;
             }
             if (hideVideo && k != null && hiddenKey != null && !k.equals(hiddenKey)) {
                 hideVideo = false;
-                Log.i(TAG, "VYT_RESTORE otro_video");
+                D.i("VYT_RESTORE otro_video");
             }
         }
 
@@ -319,7 +319,7 @@ public class SpeedService extends AccessibilityService {
             hiddenKey = videoKey();
             inactiveSince = 0;
         }
-        Log.i(TAG, "VYT_DISMISS " + (untilReopen ? "reabrir" : "video"));
+        D.i("VYT_DISMISS " + (untilReopen ? "reabrir" : "video"));
         evaluate();
     }
 
@@ -340,7 +340,7 @@ public class SpeedService extends AccessibilityService {
         automator.trySession(t, yt, ok -> {
             if (ok) {
                 covering = false;
-                Log.i(TAG, String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=true via=session", t, t));
+                D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=true via=session", t, t));
                 if (pending) { pending = false; if (Math.abs(target - t) > 0.001f) { apply(); return; } }
                 done(t, true, t);
                 return;
@@ -353,7 +353,7 @@ public class SpeedService extends AccessibilityService {
     private void runAutomation() {
         final float t = target;
         automator.setSpeed(t, r -> {
-            Log.i(TAG, String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=%b via=%s",
+            D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=%b via=%s",
                     t, r.speed, r.ok, r.via));
             if (pending) {
                 pending = false;

@@ -65,6 +65,13 @@ public class MainActivity extends Activity {
                 Uri.parse("package:" + getPackageName()))));
         root.addView(info);
 
+        TextView diag = link("Copiar diagnóstico");
+        diag.setTextColor(MUTED);
+        diag.setOnClickListener(v -> copyDiag());
+        LinearLayout.LayoutParams dp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        dp.topMargin = dp(24);
+        root.addView(diag, dp);
+
         TextView open = button("Abrir YouTube");
         open.setTextSize(16);
         open.setPadding(dp(18), dp(14), dp(18), dp(14));
@@ -108,6 +115,17 @@ public class MainActivity extends Activity {
     private boolean notificationsOn() {
         String list = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
         return list != null && list.contains(getPackageName());
+    }
+
+    private void copyDiag() {
+        String yt = "?";
+        try { yt = getPackageManager().getPackageInfo(SpeedService.YT, 0).versionName; } catch (Exception ignored) { }
+        String txt = "Velocidad YT " + BuildConfigLite.VERSION + " | Android " + android.os.Build.VERSION.RELEASE
+                + " (API " + android.os.Build.VERSION.SDK_INT + ") | " + android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL
+                + " | YouTube " + yt + "\n\n" + D.lines() + "\n\n--- pantalla en el último fallo ---\n" + D.tree;
+        android.content.ClipboardManager cm = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("diagnóstico", txt));
+        android.widget.Toast.makeText(this, "Copiado", android.widget.Toast.LENGTH_SHORT).show();
     }
 
     // ---------- Vistas ----------
