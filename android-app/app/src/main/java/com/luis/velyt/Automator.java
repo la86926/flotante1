@@ -135,8 +135,8 @@ class Automator {
             Snap sn = snap();
             if (sn.panelOpen()) { stepPanel(); return true; }
             AccessibilityNodeInfo g = sn.settings();
-            if (g != null && !g.isVisibleToUser()) Log.i(SpeedService.TAG, "VYT_GEAR invisible");
-            if (g != null && g.isVisibleToUser()) {
+            // Tras mostrar los controles se toca aunque Android lo informe como "no visible" (Android 16).
+            if (g != null && (g.isVisibleToUser() || playerTaps > 0)) {
                 beforeWindows = sn.windowIds();
                 if (click(g)) { stepWaitMenu(); return true; }
             }
