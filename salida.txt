@@ -1,0 +1,39 @@
+inicio Tue Oct 27 02:30:38 UTC 2026
+== Instalación
+Performing Streamed Install
+Success
+Performing Streamed Install
+Success
+✔ app instalada y servicio activo
+== 1. Sin video: no debe aparecer
+✔ en el inicio (sin video) el botón no aparece
+== 2. Al abrir un video: aparece solo
+✔ con video aparece en burbuja, y al tocarla se abren los controles
+== 3. + una vez → 1.25x (valor rápido del panel)
+✔ 1.25x aplicado; el menú no se vio y el video quedó libre (tapado desde y=204, video hasta y=204)
+== 4. + seis veces seguidas → 2.75x (barra del panel)
+✔ 2.75x aplicado
+== 5. + seis veces más → tope 4x
+✔ 4x aplicado (no pasa de 4x)
+== 6. − quince veces → mínimo 0.25x
+✔ 0.25x aplicado
+== 7. Tocar el número → vuelve a 1x
+✔ volvió a 1x
+== 8. Minimizar → burbuja, arrastrar, abrir
+pantalla 320x640: arrastrar burbuja 223,320 → 117,160
+✔ minimizar, arrastrar y volver a abrir funcionan
+== 9. Con los controles reabiertos, + sigue funcionando
+✔ funciona después de mover y reabrir
+== 10. X → tocar fuera cancela
+✔ la X muestra las dos opciones y tocar fuera las cancela
+== 11. X → Próximo video
+✔ Próximo video: se oculta y vuelve (en burbuja) en el siguiente video
+== 12. X → Al reabrir YouTube
+✔ Al reabrir YouTube: sigue oculto en otros videos y vuelve al reabrir YouTube
+== 12b. Horizontal: se reubica, + funciona y el menú se tapa
+✔ en horizontal funciona y tapa (con foto) solo donde sale el menú
+== 13. Salir de YouTube → desaparece; volver → reaparece
+✔ se oculta fuera de YouTube y reaparece al volver
+== 14. Cerrar el video → desaparece
+✔ al cerrar el video el botón desaparece
+TODAS LAS PRUEBAS PASARON (16)
