@@ -38,6 +38,7 @@ public class SpeedService extends AccessibilityService {
     boolean pending;
     boolean scheduled;
     boolean covering;
+    int coverSeq;
     boolean needBubble = true;
     String shownKey;
     long leftYtAt;
@@ -336,8 +337,14 @@ public class SpeedService extends AccessibilityService {
         h.removeCallbacks(uncoverRun);
         final float t = target;
         covering = true;
+        final int seq = ++coverSeq;
+        // Seguro: si el sistema nunca responde, no se queda trabado.
+        h.postDelayed(() -> {
+            if (seq == coverSeq && covering) { covering = false; coverSeq++; D.i("VYT_COVER timeout"); runAutomation(); }
+        }, 3000);
         // 1) Si YouTube acepta el cambio directo, no se toca nada en pantalla.
         automator.trySession(t, yt, ok -> {
+            if (seq != coverSeq || !covering) return;
             if (ok) {
                 covering = false;
                 D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=true via=session", t, t));
@@ -346,7 +353,11 @@ public class SpeedService extends AccessibilityService {
                 return;
             }
             // 2) Si no: se tapa la zona del menú y se usa el menú de YouTube.
-            overlay.cover(() -> { covering = false; runAutomation(); });
+            overlay.cover(() -> {
+                if (seq != coverSeq || !covering) return;
+                covering = false;
+                runAutomation();
+            });
         });
     }
 

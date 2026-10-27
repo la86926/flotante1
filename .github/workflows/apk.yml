@@ -77,12 +77,79 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-24.04
-    # Android 17 depende de que exista su imagen de emulador; no bloquea la publicación.
-    continue-on-error: ${{ matrix.api == '37.0' }}
     strategy:
       fail-fast: false
       matrix:
-        api: ['30', '34', '36', '37.0']
+        api: ['30', '34', '36']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apks
+          path: out
+
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Prueba en emulador Android ${{ matrix.api }}
+        id: prueba1
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: ${{ matrix.api >= 37 && 'google_apis' || 'default' }}
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash ci/emulator-test.sh out/VelocidadYT.apk out/fakeyt.apk resultados-api${{ matrix.api }}
+
+      # Segundo intento solo si el emulador falló (a veces no arranca en el servidor).
+      - name: Reintento en emulador Android ${{ matrix.api }}
+        if: steps.prueba1.outcome == 'failure'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: ${{ matrix.api >= 37 && 'google_apis' || 'default' }}
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: rm -rf resultados-api${{ matrix.api }} && bash ci/emulator-test.sh out/VelocidadYT.apk out/fakeyt.apk resultados-api${{ matrix.api }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-api${{ matrix.api }}
+          path: resultados-api${{ matrix.api }}/
+          retention-days: 30
+
+      - name: Guardar resultados en la rama ci-api${{ matrix.api }}
+        if: always()
+        run: |
+          D=resultados-api${{ matrix.api }}
+          mkdir -p "$D"
+          echo "${{ github.sha }}" > "$D/commit.txt"
+          cd "$D"
+          git init -q -b ci-api${{ matrix.api }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Resultados de prueba ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ci-api${{ matrix.api }}
+
+  # Android 17: su imagen de emulador aún no arranca en GitHub; no frena la publicación.
+  test17:
+    needs: build
+    runs-on: ubuntu-24.04
+    # Android 17 depende de que exista su imagen de emulador; no bloquea la publicación.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        api: ['37.0']
     steps:
       - uses: actions/checkout@v4
 
