@@ -135,6 +135,7 @@ class Automator {
             Snap sn = snap();
             if (sn.panelOpen()) { stepPanel(); return true; }
             AccessibilityNodeInfo g = sn.settings();
+            if (g != null && !g.isVisibleToUser()) Log.i(SpeedService.TAG, "VYT_GEAR invisible");
             if (g != null && g.isVisibleToUser()) {
                 beforeWindows = sn.windowIds();
                 if (click(g)) { stepWaitMenu(); return true; }
@@ -361,7 +362,8 @@ class Automator {
             y = cy;
             break;
         }
-        tap(x, y);
+        Log.i(SpeedService.TAG, "VYT_TAP player=" + p.toShortString() + " at=" + (int) x + "," + (int) y
+                + " cover=" + (cv != null ? cv.toShortString() : "-") + " ok=" + tap(x, y));
     }
 
     private boolean tap(float x, float y) {

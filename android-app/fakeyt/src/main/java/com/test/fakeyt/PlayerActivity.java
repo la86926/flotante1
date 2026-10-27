@@ -172,6 +172,7 @@ public class PlayerActivity extends Activity {
     }
 
     private void toggleControls() {
+        Log.i(T, "FAKEYT tap player controls_before=" + controls.getVisibility());
         h.removeCallbacks(hideControls);
         if (controls.getVisibility() == View.VISIBLE) {
             controls.setVisibility(View.GONE);
