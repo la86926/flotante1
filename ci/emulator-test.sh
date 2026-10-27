@@ -274,13 +274,13 @@ for v in 1.50 1.75; do
   clear_logs
   tap "$PX" "$PY"
   expect_speed $v
-  [[ "$(last 'VYT_COVER on')" == *"mode=card"* ]] || fail "en horizontal debía tapar solo la zona del menú: $(last 'VYT_COVER on')"
+  [[ "$(last 'VYT_COVER on')" == *"mode=shot"* ]] || fail "en horizontal debía tapar con foto la zona del menú: $(last 'VYT_COVER on')"
 done
 [[ "$(last 'VYT_COVER on')" == *"src=learned"* ]] || fail "no usó la zona aprendida del menú"
 adb shell settings put system user_rotation 0
 wait_for "VYT_ROTATED" 10 || fail "no se reubicó al volver a vertical"
 sleep 1
-ok "en horizontal funciona y tapa solo donde sale el menú"
+ok "en horizontal funciona y tapa (con foto) solo donde sale el menú"
 
 echo "== 13. Salir de YouTube → desaparece; volver → reaparece"
 clear_logs

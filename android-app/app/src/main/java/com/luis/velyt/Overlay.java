@@ -277,30 +277,30 @@ class Overlay {
     // El botón queda visible y tocable por un hueco con su misma forma.
 
     void cover(Runnable then) {
-        if (covered || !shown) { then.run(); return; }
+        if (covered || !shown || Build.VERSION.SDK_INT < 30) { then.run(); return; }
         Point sc = screen();
         boolean land = sc.x > sc.y;
         Rect player = s.automator.playerRect();
         Rect learned = region(land);
+        int pb = -1;
+        if (player != null && player.height() < sc.y * 0.6f && player.bottom < sc.y * 0.65f) pb = player.bottom;
+        else if (!land) pb = statusBar() + sc.x * 9 / 16; // video arriba en 16:9
         Rect r;
-        boolean top = player != null && player.height() < sc.y * 0.6f && player.bottom < sc.y * 0.65f;
-        if (top) {
-            r = new Rect(0, player.bottom, sc.x, sc.y);
-            if (learned != null) r.union(learned);
-        } else if (learned != null) {
-            r = new Rect(learned);
-        } else {
-            r = new Rect((int) (sc.x * 0.15f), (int) (sc.y * 0.25f), (int) (sc.x * 0.85f), sc.y);
-        }
+        if (pb > 0) r = new Rect(0, pb, sc.x, sc.y);           // solo debajo del video: el video sigue
+        else if (learned != null) r = new Rect(learned);
+        else r = new Rect((int) (sc.x * 0.15f), (int) (sc.y * 0.25f), (int) (sc.x * 0.85f), sc.y);
         if (!r.intersect(0, 0, sc.x, sc.y)) { then.run(); return; }
-        String info = " top=" + r.top + " playerBottom=" + (player != null ? player.bottom : -1)
-                + " src=" + (learned != null ? "learned" : "default");
-        if (top && Build.VERSION.SDK_INT >= 30) shot(r, info, then);
-        else { addCover(null, r, "card" + info); then.run(); }
+        String info = " top=" + r.top + " playerBottom=" + pb + " src=" + (pb > 0 ? "player" : learned != null ? "learned" : "default");
+        shot(r, info, then, true);
+    }
+
+    private int statusBar() {
+        int id = s.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        return id > 0 ? s.getResources().getDimensionPixelSize(id) : dp(24);
     }
 
     @android.annotation.TargetApi(30)
-    private void shot(Rect r, String info, Runnable then) {
+    private void shot(Rect r, String info, Runnable then, boolean canRetry) {
         try {
             s.takeScreenshot(Display.DEFAULT_DISPLAY, s.getMainExecutor(),
                     new AccessibilityService.TakeScreenshotCallback() {
@@ -315,18 +315,22 @@ class Overlay {
                             } catch (Exception e) {
                                 D.i("VYT_ERR cover " + e);
                             }
-                            addCover(bm, r, (bm != null ? "shot" : "card") + info);
+                            if (bm != null) addCover(bm, r, "shot" + info);
                             then.run();
                         }
 
                         @Override
                         public void onFailure(int code) {
-                            addCover(null, r, "card" + info);
-                            then.run();
+                            D.i("VYT_COVER fallo=" + code);
+                            // Android permite una foto por segundo: se reintenta una vez.
+                            if (canRetry && code == AccessibilityService.ERROR_TAKE_SCREENSHOT_INTERVAL_TIME_SHORT) {
+                                s.h.postDelayed(() -> shot(r, info, then, false), 1050);
+                            } else {
+                                then.run(); // sin cubierta antes que algo feo
+                            }
                         }
                     });
         } catch (Exception e) {
-            addCover(null, r, "card" + info);
             then.run();
         }
     }
