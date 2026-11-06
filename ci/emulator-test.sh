@@ -154,7 +154,7 @@ adb shell am start -W -n com.luis.velyt/.MainActivity --ez tapar true >/dev/null
 sleep 1
 adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
 sleep 2
-last_state_is shown || fail "el botón no está visible tras activar Tapar el menú"
+[[ "$(last_any "VYT_STATE overlay=")" == *"overlay=shown"* ]] || fail "el botón no está visible tras activar Tapar el menú"
 COVER=1
 expand
 read_pos
