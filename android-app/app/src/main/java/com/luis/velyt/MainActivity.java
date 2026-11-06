@@ -28,6 +28,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        if (getIntent() != null && getIntent().hasExtra("tapar"))
+            getSharedPreferences("ajustes", MODE_PRIVATE).edit().putBoolean("tapar", getIntent().getBooleanExtra("tapar", false)).commit();
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
@@ -56,6 +58,11 @@ public class MainActivity extends Activity {
         notifBtn = button("Activar");
         notifBtn.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         root.addView(row("2", "Acceso a notificaciones", "Para saber cuándo hay un video en reproducción.", notifState, notifBtn));
+
+        android.widget.Switch tapar = new android.widget.Switch(this);
+        tapar.setChecked(getSharedPreferences("ajustes", MODE_PRIVATE).getBoolean("tapar", false));
+        tapar.setOnCheckedChangeListener((v, on) -> getSharedPreferences("ajustes", MODE_PRIVATE).edit().putBoolean("tapar", on).apply());
+        root.addView(row("3", "Tapar el menú", "Oculta el menú de YouTube con una foto fija.", new TextView(this), tapar));
 
         TextView hint = text("¿Interruptor bloqueado? Información de la app → ⋮ → Permitir ajustes restringidos.", 13, MUTED, false);
         hint.setPadding(0, dp(18), 0, dp(6));

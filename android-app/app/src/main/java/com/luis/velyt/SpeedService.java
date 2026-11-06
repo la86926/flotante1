@@ -9,6 +9,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -202,6 +203,7 @@ public class SpeedService extends AccessibilityService {
     }
 
     void periodic() {
+        if (overlay != null && overlay.shown && Build.VERSION.SDK_INT >= 30) overlay.setTime(Frame.clock(Frame.info(this).pos));
         trySessions();
         if (audio != null && audio.isMusicActive()) lastAudio = System.currentTimeMillis();
         updateForeground();
@@ -233,7 +235,7 @@ public class SpeedService extends AccessibilityService {
     }
 
     void evaluate() {
-        if (overlay == null) return;
+        if (overlay == null || capturing) return;
         boolean active = videoActive();
 
         long nowMs = System.currentTimeMillis();
@@ -352,13 +354,68 @@ public class SpeedService extends AccessibilityService {
                 done(t, true, t);
                 return;
             }
-            // 2) Si no: se tapa la zona del menú y se usa el menú de YouTube.
+            // 2) Si no: se usa el menú de YouTube (tapado solo si se activó "Tapar el menú").
+            if (!getSharedPreferences("ajustes", MODE_PRIVATE).getBoolean("tapar", false)) {
+                covering = false;
+                runAutomation();
+                return;
+            }
             overlay.cover(() -> {
                 if (seq != coverSeq || !covering) return;
                 covering = false;
                 runAutomation();
             });
         });
+    }
+
+    // ---------- Foto del frame ----------
+    boolean capturing;
+
+    @android.annotation.TargetApi(30)
+    void capture(boolean withTime) {
+        if (Build.VERSION.SDK_INT < 30 || capturing || automator.busy || covering || scheduled) { overlay.flash(); return; }
+        capturing = true;
+        overlay.uncover();
+        overlay.hide();
+        automator.hideControls(() -> h.postDelayed(() -> shoot(withTime, true), 150));
+    }
+
+    @android.annotation.TargetApi(30)
+    private void shoot(boolean withTime, boolean retry) {
+        final android.graphics.Rect area = Frame.videoRect(this);
+        final Frame.Info info = Frame.info(this);
+        try {
+            takeScreenshot(android.view.Display.DEFAULT_DISPLAY, getMainExecutor(), new TakeScreenshotCallback() {
+                @Override
+                public void onSuccess(ScreenshotResult r) {
+                    endCapture();
+                    Frame.save(SpeedService.this, r.getHardwareBuffer(), r.getColorSpace(), area, withTime, info);
+                }
+
+                @Override
+                public void onFailure(int code) {
+                    if (retry && code == ERROR_TAKE_SCREENSHOT_INTERVAL_TIME_SHORT) {
+                        h.postDelayed(() -> shoot(withTime, false), 1050);
+                    } else {
+                        endCapture();
+                        D.i("VYT_SHOT fallo=" + code);
+                        toast("No se pudo");
+                    }
+                }
+            });
+        } catch (Exception e) {
+            endCapture();
+            toast("No se pudo");
+        }
+    }
+
+    private void endCapture() {
+        capturing = false;
+        evaluate();
+    }
+
+    void toast(String m) {
+        h.post(() -> android.widget.Toast.makeText(this, m, android.widget.Toast.LENGTH_SHORT).show());
     }
 
     private void runAutomation() {

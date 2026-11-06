@@ -61,7 +61,7 @@ public class PlayerActivity extends Activity {
         int w = getResources().getDisplayMetrics().widthPixels;
         player = new FrameLayout(this);
         player.setId(R.id.player_view);
-        player.setBackgroundColor(Color.BLACK);
+        player.setBackground(new android.graphics.drawable.GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation.TL_BR, new int[]{0xFFFF7A00, 0xFF2D6BFF}));
         player.setContentDescription("Reproductor de video");
         player.setOnClickListener(v -> toggleControls());
         root.addView(player, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, playerHeight()));

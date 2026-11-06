@@ -15,6 +15,7 @@ PASS=0
 
 shot() { adb exec-out screencap -p > "$OUT/$1.png" 2>/dev/null || true; }
 MARK=0
+COVER=0
 # Todo el registro (no se borra nunca; cada paso deja una marca).
 alllogs() { adb logcat -d -v brief -s VYT:I FAKEYT:I; }
 # Solo lo ocurrido desde la última marca.
@@ -71,6 +72,8 @@ read_pos() {
   read -r PX PY <<<"$(xy plus "$P")"
   read -r NX NY <<<"$(xy min "$P")"
   read -r CX CY <<<"$(xy close "$P")"
+  read -r FX FY <<<"$(xy shot "$P")"
+  read -r GX GY <<<"$(xy shott "$P")"
 }
 # El menú de YouTube debe abrirse y cerrarse SIEMPRE con la cubierta puesta (que no se vea).
 cover_ok() {
@@ -105,7 +108,7 @@ expect_speed() { # objetivo con 2 decimales, segundos
   [[ "$f" == *"speed=$s"* ]] || fail "YouTube de prueba quedó en otra velocidad: $f (esperado $s)"
   no_decoys
   menus_closed
-  cover_ok
+  if [[ $COVER == 1 ]]; then cover_ok; elif logs | grep -q "VYT_COVER on"; then fail "tapó el menú con la opción apagada"; fi
 }
 
 echo "== Instalación"
@@ -137,6 +140,23 @@ shot 02-video-con-burbuja
 expand
 read_pos
 ok "con video aparece en burbuja, y al tocarla se abren los controles"
+
+echo "== 2c. Sin tapar (por defecto): + y −"
+clear_logs
+tap "$PX" "$PY"
+expect_speed 1.25
+clear_logs
+tap "$MX" "$MY"
+expect_speed 1.00
+ok "sin tapar: cambia la velocidad sin poner nada encima"
+clear_logs
+adb shell am start -W -n com.luis.velyt/.MainActivity --ez tapar true >/dev/null
+sleep 1
+adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
+wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció tras activar Tapar el menú"
+COVER=1
+expand
+read_pos
 
 echo "== 3. + una vez → 1.25x (valor rápido del panel)"
 clear_logs
@@ -206,6 +226,30 @@ tap "$PX" "$PY"
 expect_speed 1.25
 shot 06-tras-reabrir
 ok "funciona después de mover y reabrir"
+
+echo "== 9b. Foto del frame y foto con tiempo"
+adb shell rm -rf "/sdcard/Pictures/Velocidad\ YT" >/dev/null 2>&1
+clear_logs
+read_pos
+tap "$FX" "$FY"
+wait_for "VYT_SHOT ok" 12 || fail "no se guardó la foto del frame ($(last 'VYT_SHOT'))"
+N1=$(last "VYT_SHOT ok")
+[[ "$N1" == *"Video 1 "*".png"* && "$N1" != *"(con tiempo)"* ]] || fail "nombre inesperado: $N1"
+wait_for "VYT_STATE overlay=shown" 5 || fail "el botón no volvió después de la foto"
+sleep 1.5
+clear_logs
+read_pos
+tap "$GX" "$GY"
+wait_for "VYT_SHOT ok" 12 || fail "no se guardó la foto con tiempo ($(last 'VYT_SHOT'))"
+N2=$(last "VYT_SHOT ok")
+[[ "$N2" == *"(con tiempo).png"* ]] || fail "el nombre no termina en (con tiempo): $N2"
+sleep 1
+mkdir -p "$OUT/fotos"
+adb shell ls "/sdcard/Pictures/Velocidad\ YT/" > "$OUT/fotos.txt" 2>&1
+[[ $(grep -c "\.png" "$OUT/fotos.txt") -ge 2 ]] || fail "las fotos no están en Imágenes/Velocidad YT: $(cat "$OUT/fotos.txt")"
+adb pull "/sdcard/Pictures/Velocidad YT/." "$OUT/fotos/" >/dev/null 2>&1 || true
+no_decoys
+ok "fotos guardadas: $(echo "$N1" | grep -oE 'size=[0-9x]+') y con tiempo"
 
 echo "== 10. X → tocar fuera cancela"
 clear_logs

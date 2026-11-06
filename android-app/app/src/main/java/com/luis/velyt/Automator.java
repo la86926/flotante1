@@ -45,6 +45,7 @@ class Automator {
     private static final Pattern SETTINGS_WORD = Pattern.compile("(settings|configuraci|ajustes|configura[cç][aã]o|configurações)");
     private static final Pattern MORE_WORD = Pattern.compile("(more options|más opciones|mas opciones|mais opções)");
     private static final Pattern SPEED_WORD = Pattern.compile("(playback speed|velocidad|speed|velocidade)");
+    private static final Pattern CONTROL_WORD = Pattern.compile("^(pausar|reproducir|pause|play|siguiente|anterior|next|previous)\\b");
     private static final Pattern SPEED_PHRASE = Pattern.compile("^(playback speed|velocidad de reproducci|velocidade de reprodu|velocidad$|speed$)");
     private static final Pattern ADDITIONAL_WORD = Pattern.compile("(additional settings|configuración adicional|configuracion adicional|ajustes adicionales|más configuraci|configurações adicionais)");
     private static final Pattern INC_WORD = Pattern.compile("(aumentar|increase|incrementar|subir|faster|más rápid|mais rápid)");
@@ -120,6 +121,20 @@ class Automator {
     }
 
     Rect playerRect() { return snap().player(); }
+
+    /** Si los controles de YouTube están a la vista, un toque al video los oculta antes de la foto. */
+    void hideControls(Runnable then) {
+        try {
+            Snap sn = snap();
+            if (sn.controlsVisible()) {
+                tapPlayer(sn);
+                D.i("VYT_SHOT ocultar_controles");
+                h.postDelayed(then, 450);
+                return;
+            }
+        } catch (Exception ignored) { }
+        then.run();
+    }
 
     // ---------- Pasos ----------
 
@@ -494,6 +509,20 @@ class Automator {
                 if (u == null) u = best; else u.union(best);
             }
             return u;
+        }
+
+        boolean controlsVisible() {
+            Rect p = player();
+            for (AccessibilityNodeInfo n : nodes) {
+                if (!n.isVisibleToUser()) continue;
+                String d = lower(n.getContentDescription()).trim();
+                if (d.isEmpty() || !CONTROL_WORD.matcher(d).find() || !inPlayerArea(n)) continue;
+                Rect r = new Rect();
+                n.getBoundsInScreen(r);
+                if (p != null && (long) r.width() * r.height() > (long) p.width() * p.height() / 3) continue;
+                return true;
+            }
+            return false;
         }
 
         Rect player() {

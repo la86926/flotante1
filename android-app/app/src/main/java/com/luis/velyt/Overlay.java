@@ -51,7 +51,9 @@ class Overlay {
 
     private final LinearLayout panel, closeCard;
     private final TextView minus, label, plus, bubble, close, optNext, optReopen;
-    private final ImageView minimize;
+    private final ImageView minimize, shotBtn;
+    private final LinearLayout shotTimeBtn;
+    private final TextView shotTimeLabel;
 
     private View current;
     private int mode;
@@ -97,7 +99,7 @@ class Overlay {
         label.setTextSize(16);
         label.setTypeface(Typeface.DEFAULT_BOLD);
         label.setGravity(Gravity.CENTER);
-        label.setMinWidth(dp(58));
+        label.setMinWidth(dp(52));
         label.setPadding(dp(4), 0, dp(4), 0);
         label.setContentDescription("Velocidad (tocar: volver a 1x)");
 
@@ -115,16 +117,34 @@ class Overlay {
         close.setIncludeFontPadding(false);
         close.setContentDescription("Cerrar");
 
-        panel.addView(minus, new LinearLayout.LayoutParams(dp(46), dp(46)));
-        panel.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(46)));
-        panel.addView(plus, new LinearLayout.LayoutParams(dp(46), dp(46)));
-        LinearLayout.LayoutParams sep = new LinearLayout.LayoutParams(dp(1), dp(24));
-        sep.leftMargin = dp(6);
-        View line = new View(s);
-        line.setBackgroundColor(0x33FFFFFF);
-        panel.addView(line, sep);
-        panel.addView(minimize, new LinearLayout.LayoutParams(dp(42), dp(46)));
-        panel.addView(close, new LinearLayout.LayoutParams(dp(42), dp(46)));
+        // Foto del frame / Foto del frame con tiempo
+        shotBtn = new ImageView(s);
+        shotBtn.setImageResource(R.drawable.ic_frame);
+        shotBtn.setScaleType(ImageView.ScaleType.CENTER);
+        shotBtn.setContentDescription("Foto del frame");
+        shotTimeBtn = new LinearLayout(s);
+        shotTimeBtn.setOrientation(LinearLayout.VERTICAL);
+        shotTimeBtn.setGravity(Gravity.CENTER);
+        shotTimeBtn.setContentDescription("Foto del frame con tiempo");
+        ImageView stIcon = new ImageView(s);
+        stIcon.setImageResource(R.drawable.ic_frame_time);
+        shotTimeBtn.addView(stIcon, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        shotTimeLabel = new TextView(s);
+        shotTimeLabel.setText("0:00");
+        shotTimeLabel.setTextColor(0xD9FFFFFF);
+        shotTimeLabel.setTextSize(9);
+        shotTimeLabel.setIncludeFontPadding(false);
+        shotTimeBtn.addView(shotTimeLabel);
+
+        panel.addView(minus, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        panel.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(42)));
+        panel.addView(plus, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        View line = separator();
+        panel.addView(shotBtn, new LinearLayout.LayoutParams(dp(38), dp(42)));
+        panel.addView(shotTimeBtn, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        View line2 = separator();
+        panel.addView(minimize, new LinearLayout.LayoutParams(dp(36), dp(42)));
+        panel.addView(close, new LinearLayout.LayoutParams(dp(36), dp(42)));
 
         // ----- Burbuja -----
         bubble = new TextView(s);
@@ -164,6 +184,9 @@ class Overlay {
         minimize.setOnTouchListener(new Drag(() -> setMode(MODE_BUBBLE)));
         close.setOnTouchListener(new Drag(() -> setMode(MODE_CLOSE)));
         line.setOnTouchListener(new Drag(null));
+        line2.setOnTouchListener(new Drag(null));
+        shotBtn.setOnTouchListener(new Drag(() -> s.capture(false)));
+        shotTimeBtn.setOnTouchListener(new Drag(() -> s.capture(true)));
         panel.setOnTouchListener(new Drag(null));
         bubble.setOnTouchListener(new Drag(() -> setMode(MODE_PANEL)));
         optNext.setOnClickListener(v -> { setMode(MODE_PANEL); s.dismiss(false); });
@@ -180,6 +203,18 @@ class Overlay {
     }
 
     void toBubble() { setMode(MODE_BUBBLE); }
+
+    void setTime(String t) { if (!t.equals(shotTimeLabel.getText().toString())) shotTimeLabel.setText(t); }
+
+    private View separator() {
+        View v = new View(s);
+        v.setBackgroundColor(0x33FFFFFF);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(1), dp(24));
+        p.leftMargin = dp(4);
+        p.rightMargin = dp(2);
+        panel.addView(v, p);
+        return v;
+    }
 
     Point screen() {
         Point p = new Point();
@@ -256,7 +291,7 @@ class Overlay {
             shown = false;
         }
         View nv = viewFor(m);
-        int newW = nv.getWidth() > 0 ? nv.getWidth() : dp(m == MODE_BUBBLE ? 56 : m == MODE_CLOSE ? 190 : 250);
+        int newW = nv.getWidth() > 0 ? nv.getWidth() : dp(m == MODE_BUBBLE ? 56 : m == MODE_CLOSE ? 190 : 312);
         // Mantiene alineado el borde derecho (donde está la X / la burbuja).
         if (oldW > 0) lp.x = lp.x + oldW - newW;
         mode = m;
@@ -294,7 +329,7 @@ class Overlay {
         shot(r, info, then, true);
     }
 
-    private int statusBar() {
+    int statusBar() {
         int id = s.getResources().getIdentifier("status_bar_height", "dimen", "android");
         return id > 0 ? s.getResources().getDimensionPixelSize(id) : dp(24);
     }
@@ -309,9 +344,8 @@ class Overlay {
                             Bitmap bm = null;
                             try {
                                 HardwareBuffer hb = res.getHardwareBuffer();
-                                Bitmap hw = Bitmap.wrapHardwareBuffer(hb, res.getColorSpace());
-                                bm = hw != null ? hw.copy(Bitmap.Config.ARGB_8888, false) : null;
-                                hb.close();
+                                bm = Bitmap.wrapHardwareBuffer(hb, res.getColorSpace());
+                                pendingBuffer = hb; // sin copiar a la CPU: menos tirones
                             } catch (Exception e) {
                                 D.i("VYT_ERR cover " + e);
                             }
@@ -335,14 +369,20 @@ class Overlay {
         }
     }
 
+    private HardwareBuffer pendingBuffer, coverBuffer;
+
     private void addCover(Bitmap bm, Rect r, String desc) {
-        if (covered || !s.ytForeground) return; // nunca dos cubiertas, ni sobre otra app
+        HardwareBuffer hb = pendingBuffer;
+        pendingBuffer = null;
+        if (covered || !s.ytForeground) { if (hb != null) hb.close(); return; }
+        coverBuffer = hb; // nunca dos cubiertas, ni sobre otra app
         CoverView v = new CoverView(bm, r);
         WindowManager.LayoutParams c = new WindowManager.LayoutParams(
                 r.width(), r.height(),
                 WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
@@ -370,6 +410,9 @@ class Overlay {
         try { wm.removeView(coverView); } catch (Exception ignored) { }
         covered = false;
         coverRect = null;
+        final HardwareBuffer hb = coverBuffer;
+        coverBuffer = null;
+        if (hb != null) s.h.postDelayed(hb::close, 600);
         coverView = null; // sin recycle(): la vista puede estar dibujándose aún
         D.i("VYT_COVER off");
     }
@@ -405,6 +448,7 @@ class Overlay {
         private final Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint tx = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final int[] loc = new int[2];
+        private Bitmap sw;
 
         CoverView(Bitmap bm, Rect r) {
             super(s);
@@ -426,7 +470,12 @@ class Overlay {
             if (Build.VERSION.SDK_INT >= 26) c.clipOutPath(hole);
             else c.clipPath(hole, Region.Op.DIFFERENCE);
             if (bm != null) {
-                c.drawBitmap(bm, r, r, null);
+                Bitmap d = bm;
+                if (Build.VERSION.SDK_INT >= 26 && bm.getConfig() == Bitmap.Config.HARDWARE && !c.isHardwareAccelerated()) {
+                    if (sw == null) sw = bm.copy(Bitmap.Config.ARGB_8888, false);
+                    d = sw;
+                }
+                if (d != null) c.drawBitmap(d, r, r, null);
             } else {
                 c.drawRoundRect(new RectF(r), dp(20), dp(20), bg);
                 c.drawText(fmt(s.target), r.exactCenterX(), r.exactCenterY() - (tx.descent() + tx.ascent()) / 2f, tx);
@@ -499,7 +548,8 @@ class Overlay {
             D.i("VYT_POS mode=close next=" + center(optNext) + " reopen=" + center(optReopen));
         } else {
             D.i("VYT_POS mode=expanded minus=" + center(minus) + " label=" + center(label)
-                    + " plus=" + center(plus) + " min=" + center(minimize) + " close=" + center(close));
+                    + " plus=" + center(plus) + " min=" + center(minimize) + " close=" + center(close)
+                    + " shot=" + center(shotBtn) + " shott=" + center(shotTimeBtn));
         }
     }
 
