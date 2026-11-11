@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prueba de punta a punta en un emulador Android real:
-#   app Velocidad YT  +  "YouTube de prueba" (imita el menú de velocidad de YouTube).
+#   app VelocidadYT de L  +  "YouTube de prueba" (imita el menú de velocidad de YouTube).
 # Uso: bash ci/emulator-test.sh <VelocidadYT.apk> <fakeyt.apk> <carpeta-salida>
 set -uo pipefail
 
@@ -112,7 +112,7 @@ expect_speed() { # objetivo con 2 decimales, segundos
 }
 
 echo "== Instalación"
-adb install -r "$APP" || fail "no se pudo instalar Velocidad YT"
+adb install -r "$APP" || fail "no se pudo instalar VelocidadYT de L"
 adb install -r "$FAKE" || fail "no se pudo instalar la YouTube de prueba"
 adb logcat -G 16M || true
 adb logcat -c
@@ -149,29 +149,12 @@ clear_logs
 tap "$MX" "$MY"
 expect_speed 1.00
 ok "sin tapar: cambia la velocidad sin poner nada encima"
-clear_logs
-adb shell am start -W -n com.luis.velyt/.MainActivity --ez tapar true >/dev/null
-sleep 1
-adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity >/dev/null
-sleep 2
-[[ "$(last_any "VYT_STATE overlay=")" == *"overlay=shown"* ]] || fail "el botón no está visible tras activar Tapar el menú"
-COVER=1
-expand
-read_pos
 
 echo "== 3. + una vez → 1.25x (valor rápido del panel)"
 clear_logs
 tap "$PX" "$PY"
-wait_for "VYT_COVER on" 8 || fail "no se puso la cubierta"
-sleep 0.4
-shot 02b-durante-el-cambio-tapado
 expect_speed 1.25
-C=$(last "VYT_COVER on")
-[[ "$C" == *"mode=shot"* ]] || fail "en vertical debía tapar con foto solo debajo del video: $C"
-T=$(echo "$C" | grep -oE 'top=[0-9]+' | cut -d= -f2); PB=$(echo "$C" | grep -oE 'playerBottom=[0-9]+' | cut -d= -f2)
-(( T >= PB )) || fail "la cubierta tapaba el video: $C"
-wait_for "VYT_LEARN rect=" 3 || fail "no aprendió dónde sale el menú"
-ok "1.25x aplicado; el menú no se vio y el video quedó libre (tapado desde y=$T, video hasta y=$PB)"
+ok "1.25x aplicado ($(last VYT_APPLY | grep -oE 'ms=[0-9]+'))"
 
 echo "== 4. + seis veces seguidas → 2.75x (barra del panel)"
 clear_logs
@@ -229,7 +212,7 @@ shot 06-tras-reabrir
 ok "funciona después de mover y reabrir"
 
 echo "== 9b. Foto del frame y foto con tiempo"
-adb shell rm -rf "/sdcard/Pictures/Velocidad\ YT" >/dev/null 2>&1
+adb shell rm -rf "/sdcard/Pictures/VelocidadYT\ de\ L" >/dev/null 2>&1
 clear_logs
 read_pos
 tap "$FX" "$FY"
@@ -246,9 +229,9 @@ N2=$(last "VYT_SHOT ok")
 [[ "$N2" == *"(con tiempo).png"* ]] || fail "el nombre no termina en (con tiempo): $N2"
 sleep 1
 mkdir -p "$OUT/fotos"
-adb shell ls "/sdcard/Pictures/Velocidad\ YT/" > "$OUT/fotos.txt" 2>&1
-[[ $(grep -c "\.png" "$OUT/fotos.txt") -ge 2 ]] || fail "las fotos no están en Imágenes/Velocidad YT: $(cat "$OUT/fotos.txt")"
-adb pull "/sdcard/Pictures/Velocidad YT/." "$OUT/fotos/" >/dev/null 2>&1 || true
+adb shell ls "/sdcard/Pictures/VelocidadYT\ de\ L/" > "$OUT/fotos.txt" 2>&1
+[[ $(grep -c "\.png" "$OUT/fotos.txt") -ge 2 ]] || fail "las fotos no están en Imágenes/VelocidadYT de L: $(cat "$OUT/fotos.txt")"
+adb pull "/sdcard/Pictures/VelocidadYT de L/." "$OUT/fotos/" >/dev/null 2>&1 || true
 no_decoys
 ok "fotos guardadas: $(echo "$N1" | grep -oE 'size=[0-9x]+') y con tiempo"
 
@@ -319,13 +302,11 @@ for v in 1.50 1.75; do
   clear_logs
   tap "$PX" "$PY"
   expect_speed $v
-  [[ "$(last 'VYT_COVER on')" == *"mode=shot"* ]] || fail "en horizontal debía tapar con foto la zona del menú: $(last 'VYT_COVER on')"
 done
-[[ "$(last 'VYT_COVER on')" == *"src=learned"* ]] || fail "no usó la zona aprendida del menú"
 adb shell settings put system user_rotation 0
 wait_for "VYT_ROTATED" 10 || fail "no se reubicó al volver a vertical"
 sleep 1
-ok "en horizontal funciona y tapa (con foto) solo donde sale el menú"
+ok "en horizontal funciona"
 
 echo "== 13. Salir de YouTube → desaparece; volver → reaparece"
 clear_logs

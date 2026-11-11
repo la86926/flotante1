@@ -87,7 +87,7 @@ class Automator {
                 sessionWorks = ok;
                 D.i("VYT_SESSION_SPEED " + (ok ? "si" : "no"));
                 cb.accept(ok);
-            }, 600);
+            }, 450);
         } catch (Exception e) {
             sessionWorks = false;
             cb.accept(false);
@@ -102,6 +102,7 @@ class Automator {
         triedAdditional = false;
         buttonRounds = 0;
         panelReads = 0;
+        retargets = 0;
         menuItemText = null;
         menuItemBounds = null;
         beforeWindows = null;
@@ -146,7 +147,7 @@ class Automator {
 
     private void stepSettings() {
         if (!s.ytForeground) { finish(false, s.target, "fuera_de_youtube"); return; }
-        poll(playerTaps == 0 ? 200 : 900, () -> {
+        poll(playerTaps == 0 ? 0 : 900, () -> {
             Snap sn = snap();
             if (sn.panelOpen()) { stepPanel(); return true; }
             AccessibilityNodeInfo g = sn.settings();
@@ -160,7 +161,7 @@ class Automator {
             if (playerTaps < 2) {
                 playerTaps++;
                 tapPlayer(snap());
-                h.postDelayed(this::stepSettings, 450);
+                h.postDelayed(this::stepSettings, 150);
             } else {
                 Snap sn = snap();
                 AccessibilityNodeInfo g = sn.settings();
@@ -206,9 +207,9 @@ class Automator {
         if (!busy) return;
         Snap sn = snap();
         // El panel puede estar aún dibujándose: esperar a poder leer la velocidad.
-        if (sn.current() == null && panelReads < 5) {
+        if (sn.current() == null && panelReads < 10) {
             panelReads++;
-            h.postDelayed(this::stepPanel, 200);
+            h.postDelayed(this::stepPanel, 90);
             return;
         }
         learn(sn);
@@ -273,7 +274,7 @@ class Automator {
             AccessibilityNodeInfo b2 = goal > c2 ? s2.increase() : s2.decrease();
             if (b2 == null) { closeAndFinish(c2, "limite"); return; }
             clickTimes(b2, Math.min(n, 120), () -> verify(goal, "botones", () -> tryButtons(goal)));
-        }, 250);
+        }, 150);
     }
 
     private void clickTimes(AccessibilityNodeInfo n, int times, Runnable then) {
@@ -283,17 +284,39 @@ class Automator {
         h.postDelayed(() -> clickTimes(n, times - 1, then), 45);
     }
 
+    /** Comprueba varias veces seguidas (cada 60 ms) en lugar de esperar un tiempo fijo. */
     private void verify(float goal, String via, Runnable fallback) {
-        h.postDelayed(() -> {
-            if (!busy) return;
-            Float cur = snap().current();
-            if (cur == null) { closeAndFinish(goal, via + "_sin_lectura"); return; }
-            if (Math.abs(cur - goal) < 0.02f) closeAndFinish(goal, via);
-            else fallback.run();
-        }, 350);
+        verify(goal, via, fallback, SystemClock.uptimeMillis());
     }
 
+    private void verify(float goal, String via, Runnable fallback, long start) {
+        h.postDelayed(() -> {
+            if (!busy) return;
+            long dt = SystemClock.uptimeMillis() - start;
+            Float cur = snap().current();
+            if (cur != null && Math.abs(cur - goal) < 0.02f) { closeAndFinish(goal, via); return; }
+            if (cur == null && dt >= 180) { closeAndFinish(goal, via + "_sin_lectura"); return; }
+            if (dt >= 450) { fallback.run(); return; }
+            verify(goal, via, fallback, start);
+        }, 60);
+    }
+
+    private int retargets;
+
+    /** Velocidad que se terminó pidiendo (puede cambiar si se vuelve a tocar + o −). */
+    float asked() { return target; }
+
     private void closeAndFinish(float speed, String via) {
+        // Si se volvió a tocar + o − mientras tanto, se ajusta en el mismo panel, sin cerrarlo.
+        if (Math.abs(s.target - target) > 0.001f && retargets < 10 && snap().panelOpen()) {
+            retargets++;
+            target = s.target;
+            buttonRounds = 0;
+            deadline = SystemClock.uptimeMillis() + 8000;
+            D.i("VYT_RETARGET " + target);
+            stepPanel();
+            return;
+        }
         closeMenus(0, () -> finish(true, speed, via));
     }
 
@@ -307,10 +330,20 @@ class Automator {
         Snap sn = snap();
         if (count < 3 && (sn.panelOpen() || sn.menuStillOpen(menuItemText, menuItemBounds))) {
             s.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-            h.postDelayed(() -> closeMenus(count + 1, then), 320);
+            waitClosed(SystemClock.uptimeMillis() + 600, () -> closeMenus(count + 1, then));
         } else {
             then.run();
         }
+    }
+
+    /** Sigue en cuanto el menú se cerró; solo vuelve a pulsar "atrás" si tras 0.6 s sigue abierto. */
+    private void waitClosed(long end, Runnable next) {
+        h.postDelayed(() -> {
+            Snap sn = snap();
+            boolean open = sn.panelOpen() || sn.menuStillOpen(menuItemText, menuItemBounds);
+            if (!open || SystemClock.uptimeMillis() >= end) next.run();
+            else waitClosed(end, next);
+        }, 70);
     }
 
     private void finish(boolean ok, float speed, String via) {
@@ -336,8 +369,8 @@ class Automator {
                 boolean moved;
                 try { moved = attempt.getAsBoolean(); } catch (Exception e) { moved = false; }
                 if (moved) return;
-                if (SystemClock.uptimeMillis() > end) { onTimeout.run(); return; }
-                h.postDelayed(this, 120);
+                if (SystemClock.uptimeMillis() >= end) { onTimeout.run(); return; }
+                h.postDelayed(this, 60);
             }
         });
     }

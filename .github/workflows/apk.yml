@@ -61,7 +61,7 @@ jobs:
           test -s "$APK"
           BT=$ANDROID_HOME/build-tools/35.0.0
           $BT/aapt dump badging "$APK" | grep -F "package: name='com.luis.velyt'"
-          $BT/aapt dump badging "$APK" | grep -F "application-label:'Velocidad YT'"
+          $BT/aapt dump badging "$APK" | grep -F "application-label:'VelocidadYT de L'"
           $BT/apksigner verify --verbose "$APK"
           mkdir -p out
           cp "$APK" out/VelocidadYT.apk
@@ -224,6 +224,6 @@ jobs:
         run: |
           gh release delete apk-latest --yes --cleanup-tag || true
           gh release create apk-latest out/VelocidadYT.apk \
-            --title "Velocidad YT — APK" \
+            --title "VelocidadYT de L — APK" \
             --notes "APK probado en emulador (Android 11, 14, 16 y 17). Se actualiza con cada cambio." \
             --latest

@@ -25,7 +25,7 @@ import android.provider.MediaStore;
 import java.io.OutputStream;
 import java.util.Locale;
 
-/** Foto del frame (y "con tiempo"): recorte del video en pantalla, guardado en Imágenes/Velocidad YT. */
+/** Foto del frame (y "con tiempo"): recorte del video en pantalla, guardado en Imágenes/VelocidadYT de L. */
 @android.annotation.TargetApi(30)
 final class Frame {
 
@@ -232,7 +232,7 @@ final class Frame {
         ContentValues v = new ContentValues();
         v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
         v.put(MediaStore.MediaColumns.MIME_TYPE, "image/png");
-        v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Velocidad YT");
+        v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/VelocidadYT de L");
         v.put(MediaStore.MediaColumns.IS_PENDING, 1);
         Uri uri = cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
         if (uri == null) throw new IllegalStateException("sin uri");

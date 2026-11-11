@@ -164,6 +164,7 @@ public class SpeedService extends AccessibilityService {
         if (lastSessionSpeed > 0f && Math.abs(sp - lastSessionSpeed) > 0.01f && !automator.busy && !scheduled) {
             target = clamp(sp);
             overlay.setSpeed(target);
+            lastApplied = -1f;
         }
         lastSessionSpeed = sp;
     }
@@ -267,7 +268,7 @@ public class SpeedService extends AccessibilityService {
         // Cada video nuevo empieza en burbuja.
         String key = videoKey();
         if (!active && !automator.busy && !covering) needBubble = true;
-        if (key != null && shownKey != null && !key.equals(shownKey)) needBubble = true;
+        if (key != null && shownKey != null && !key.equals(shownKey)) { needBubble = true; lastApplied = -1f; }
 
         boolean dismissed = hideVideo || hideUntilReopen;
         boolean want = ytForeground && !dismissed && (active || automator.busy);
@@ -329,42 +330,40 @@ public class SpeedService extends AccessibilityService {
     void schedule() {
         scheduled = true;
         h.removeCallbacks(applyRun);
-        h.postDelayed(applyRun, 400);
+        h.postDelayed(applyRun, 150);
     }
+
+    float lastApplied = -1f;
+    long applyStart;
+    int reruns;
 
     void apply() {
         scheduled = false;
         if (automator.busy || covering) { pending = true; return; }
         pending = false;
-        h.removeCallbacks(uncoverRun);
         final float t = target;
+        if (Math.abs(t - lastApplied) < 0.001f) return; // ya está en esa velocidad
+        applyStart = android.os.SystemClock.uptimeMillis();
         covering = true;
         final int seq = ++coverSeq;
         // Seguro: si el sistema nunca responde, no se queda trabado.
         h.postDelayed(() -> {
-            if (seq == coverSeq && covering) { covering = false; coverSeq++; D.i("VYT_COVER timeout"); runAutomation(); }
-        }, 3000);
+            if (seq == coverSeq && covering) { covering = false; coverSeq++; runAutomation(); }
+        }, 1500);
         // 1) Si YouTube acepta el cambio directo, no se toca nada en pantalla.
         automator.trySession(t, yt, ok -> {
             if (seq != coverSeq || !covering) return;
+            covering = false;
             if (ok) {
-                covering = false;
-                D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=true via=session", t, t));
-                if (pending) { pending = false; if (Math.abs(target - t) > 0.001f) { apply(); return; } }
+                D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=true via=session ms=%d",
+                        t, t, android.os.SystemClock.uptimeMillis() - applyStart));
+                lastApplied = t;
+                if (Math.abs(target - t) > 0.001f) { apply(); return; }
                 done(t, true, t);
                 return;
             }
-            // 2) Si no: se usa el menú de YouTube (tapado solo si se activó "Tapar el menú").
-            if (!getSharedPreferences("ajustes", MODE_PRIVATE).getBoolean("tapar", false)) {
-                covering = false;
-                runAutomation();
-                return;
-            }
-            overlay.cover(() -> {
-                if (seq != coverSeq || !covering) return;
-                covering = false;
-                runAutomation();
-            });
+            // 2) Si no: se usa el menú de YouTube, lo más rápido posible.
+            runAutomation();
         });
     }
 
@@ -419,14 +418,20 @@ public class SpeedService extends AccessibilityService {
     }
 
     private void runAutomation() {
-        final float t = target;
-        automator.setSpeed(t, r -> {
-            D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=%b via=%s",
-                    t, r.speed, r.ok, r.via));
-            if (pending) {
-                pending = false;
-                if (Math.abs(target - t) > 0.001f) { runAutomation(); return; }
+        automator.setSpeed(target, r -> {
+            final float t = automator.asked();
+            D.i(String.format(Locale.US, "VYT_APPLY target=%.2f result=%.2f ok=%b via=%s ms=%d",
+                    t, r.speed, r.ok, r.via, android.os.SystemClock.uptimeMillis() - applyStart));
+            pending = false;
+            if (r.ok) lastApplied = r.speed;
+            // Si mientras tanto se pidió otra velocidad, se aplica enseguida.
+            if (Math.abs(target - t) > 0.001f && reruns < 4) {
+                reruns++;
+                applyStart = android.os.SystemClock.uptimeMillis();
+                runAutomation();
+                return;
             }
+            reruns = 0;
             done(t, r.ok, r.speed);
         });
     }
