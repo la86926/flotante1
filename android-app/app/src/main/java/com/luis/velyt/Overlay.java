@@ -610,6 +610,12 @@ class Overlay {
                     return true;
                 case MotionEvent.ACTION_CANCEL:
                     v.setAlpha(v == minimize ? 0.85f : 1f);
+                    // Android cancela el toque del dedo si coincide con un toque que hace la app
+                    // sobre YouTube: si fue un toque corto, igual cuenta.
+                    if (!dragging && onTap != null && e.getEventTime() - e.getDownTime() < 400) {
+                        D.i("VYT_TOUCH cancelado_cuenta");
+                        onTap.run();
+                    }
                     return true;
             }
             return false;
