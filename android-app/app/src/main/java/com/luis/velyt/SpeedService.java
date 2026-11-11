@@ -305,6 +305,7 @@ public class SpeedService extends AccessibilityService {
         if (Math.abs(n - target) < 0.001f) { overlay.flash(); return; }
         target = n;
         overlay.setSpeed(target);
+        D.i(String.format(Locale.US, "VYT_STEP target=%.2f", target));
         schedule();
     }
 

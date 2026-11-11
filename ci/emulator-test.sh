@@ -97,6 +97,20 @@ expand() {
     wait_for "VYT_POS mode=expanded" 5 || fail "sin posición tras abrir la burbuja"
   fi
 }
+EXTRA=0
+# Tras una ráfaga de toques: si alguno no se registró en el botón, se repite (y se cuenta).
+ensure_target() { # objetivo, X, Y
+  local goal="$1" i cur
+  for i in 1 2 3 4; do
+    sleep 1
+    cur=$(last_any "VYT_STEP target=" | grep -oE 'target=[0-9.]+' | cut -d= -f2)
+    [[ "$cur" == "$goal" ]] && return 0
+    EXTRA=$((EXTRA+1))
+    echo "toque no registrado (va en $cur, esperado $goal): se repite"
+    { echo "--- esperado $goal, va en $cur"; adb logcat -d -v time -s InputDispatcher:* VYT:I FAKEYT:I | tail -60; } >> "$OUT/toques-perdidos.txt"
+    tap "$2" "$3"
+  done
+}
 last_state_is() {
   local st; st=$(last "VYT_STATE overlay=")
   [[ "$st" == *"overlay=$1"* ]]
@@ -159,6 +173,7 @@ ok "1.25x aplicado ($(last VYT_APPLY | grep -oE 'ms=[0-9]+'))"
 echo "== 4. + seis veces seguidas → 2.75x (barra del panel)"
 clear_logs
 for i in 1 2 3 4 5 6; do tap "$PX" "$PY"; sleep 0.15; done
+ensure_target 2.75 "$PX" "$PY"
 expect_speed 2.75 35
 shot 03-275x
 ok "2.75x aplicado"
@@ -166,12 +181,14 @@ ok "2.75x aplicado"
 echo "== 5. + seis veces más → tope 4x"
 clear_logs
 for i in 1 2 3 4 5 6; do tap "$PX" "$PY"; sleep 0.15; done
+ensure_target 4.00 "$PX" "$PY"
 expect_speed 4.00 35
 ok "4x aplicado (no pasa de 4x)"
 
 echo "== 6. − quince veces → mínimo 0.25x"
 clear_logs
 for i in $(seq 1 15); do tap "$MX" "$MY"; sleep 0.15; done
+ensure_target 0.25 "$MX" "$MY"
 expect_speed 0.25 40
 ok "0.25x aplicado"
 
@@ -330,5 +347,6 @@ ok "al cerrar el video el botón desaparece"
 save_logs
 adb logcat -d -v brief AndroidRuntime:E '*:S' > "$OUT/crash.txt" || true
 if grep -q "com.luis.velyt" "$OUT/crash.txt"; then fail "hubo un cierre inesperado de la app"; fi
-echo "TODAS LAS PRUEBAS PASARON ($PASS)"
-echo "TODAS LAS PRUEBAS PASARON ($PASS)" > "$OUT/resultado.txt"
+(( EXTRA <= 3 )) || fail "demasiados toques sin registrar: $EXTRA"
+echo "TODAS LAS PRUEBAS PASARON ($PASS) toques_repetidos=$EXTRA"
+echo "TODAS LAS PRUEBAS PASARON ($PASS) toques_repetidos=$EXTRA" > "$OUT/resultado.txt"

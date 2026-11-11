@@ -578,7 +578,7 @@ class Overlay {
                     startX = lp.x;
                     startY = lp.y;
                     dragging = false;
-                    if (onTap != null) v.setAlpha(0.55f);
+                    if (onTap != null) { v.setAlpha(0.55f); D.i("VYT_TOUCH d"); }
                     return true;
                 case MotionEvent.ACTION_MOVE: {
                     float dx = e.getRawX() - downX, dy = e.getRawY() - downY;

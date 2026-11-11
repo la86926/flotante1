@@ -314,7 +314,7 @@ class Automator {
             buttonRounds = 0;
             deadline = SystemClock.uptimeMillis() + 8000;
             D.i("VYT_RETARGET " + target);
-            stepPanel();
+            h.postDelayed(this::stepPanel, 80); // deja que el panel termine de actualizarse
             return;
         }
         closeMenus(0, () -> finish(true, speed, via));
