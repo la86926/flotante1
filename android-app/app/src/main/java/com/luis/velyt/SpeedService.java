@@ -81,6 +81,7 @@ public class SpeedService extends AccessibilityService {
         audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         trySessions();
         h.post(tick);
+        instance = this;
         D.i("VYT_READY");
     }
 
@@ -109,6 +110,8 @@ public class SpeedService extends AccessibilityService {
     public void onDestroy() {
         connected = false;
         h.removeCallbacksAndMessages(null);
+        if (instance == this) instance = null;
+        try { notifyHidden(false); } catch (Exception ignored) { }
         if (overlay != null) { overlay.uncover(); overlay.hide(); }
         if (msm != null && sessionPerm) {
             try { msm.removeOnActiveSessionsChangedListener(sessionsCb); } catch (Exception ignored) { }
@@ -190,6 +193,77 @@ public class SpeedService extends AccessibilityService {
     }
 
     /** Identifica el video actual (título + duración), si YouTube lo informa. */
+    static SpeedService instance;
+    String speedTitle;
+    boolean notifShown;
+
+    String videoTitle() {
+        if (yt == null) return null;
+        try {
+            MediaMetadata m = yt.getMetadata();
+            String t = m == null ? null : m.getString(MediaMetadata.METADATA_KEY_TITLE);
+            return t == null || t.trim().isEmpty() ? null : t;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Otro video: YouTube lo arranca a su velocidad normal, y el botón debe mostrar esa. */
+    void newVideoSpeed() {
+        float sp = 1f;
+        try {
+            PlaybackState st = yt.getPlaybackState();
+            if (st != null && st.getPlaybackSpeed() > 0.05f) sp = st.getPlaybackSpeed();
+        } catch (Exception ignored) { }
+        target = clamp(sp);
+        overlay.setSpeed(target);
+        lastApplied = -1f;
+        D.i(String.format(Locale.US, "VYT_NEWVIDEO speed=%.2f", target));
+    }
+
+    /** Notificación para volver a mostrar el botón cuando se cerró con la X. */
+    void notifyHidden(boolean on) {
+        android.app.NotificationManager nm = getSystemService(android.app.NotificationManager.class);
+        if (nm == null) return;
+        if (!on) {
+            if (notifShown) { nm.cancel(1); notifShown = false; D.i("VYT_NOTIF off"); }
+            return;
+        }
+        if (notifShown) return;
+        try {
+            if (!nm.areNotificationsEnabled()) { D.i("VYT_NOTIF sin_permiso"); notifShown = true; return; }
+            if (Build.VERSION.SDK_INT >= 26) {
+                nm.createNotificationChannel(new android.app.NotificationChannel("volver", "Volver a mostrar",
+                        android.app.NotificationManager.IMPORTANCE_LOW));
+            }
+            android.app.PendingIntent pi = android.app.PendingIntent.getBroadcast(this, 0,
+                    new android.content.Intent(this, RestoreReceiver.class),
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
+            android.app.Notification.Builder b = Build.VERSION.SDK_INT >= 26
+                    ? new android.app.Notification.Builder(this, "volver") : new android.app.Notification.Builder(this);
+            b.setSmallIcon(R.drawable.ic_notif)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setContentText("Tocar para mostrar el botón")
+                    .setContentIntent(pi)
+                    .setShowWhen(false)
+                    .setOngoing(true)
+                    .setAutoCancel(true);
+            nm.notify(1, b.build());
+            notifShown = true;
+            D.i("VYT_NOTIF on");
+        } catch (Exception e) {
+            D.i("VYT_NOTIF error " + e);
+        }
+    }
+
+    void restore() {
+        if (!hideVideo && !hideUntilReopen) return;
+        hideVideo = false;
+        hideUntilReopen = false;
+        D.i("VYT_RESTORE notificacion");
+        evaluate();
+    }
+
     String videoKey() {
         if (yt == null) return null;
         try {
@@ -265,12 +339,20 @@ public class SpeedService extends AccessibilityService {
             }
         }
 
+        // Otro video: mostrar la velocidad con la que YouTube lo empieza.
+        String title = videoTitle();
+        if (title != null && !title.equals(speedTitle)) {
+            if (speedTitle != null && !automator.busy && !covering && !scheduled) newVideoSpeed();
+            speedTitle = title;
+        }
+
         // Cada video nuevo empieza en burbuja.
         String key = videoKey();
         if (!active && !automator.busy && !covering) needBubble = true;
         if (key != null && shownKey != null && !key.equals(shownKey)) { needBubble = true; lastApplied = -1f; }
 
         boolean dismissed = hideVideo || hideUntilReopen;
+        notifyHidden(dismissed);
         boolean want = ytForeground && !dismissed && (active || automator.busy);
         if (want) {
             if (needBubble) { overlay.toBubble(); needBubble = false; }

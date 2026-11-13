@@ -23,7 +23,7 @@ public class MainActivity extends Activity {
     private static final int INK = 0xFF1C1C1E, MUTED = 0xFF6E6E73, OK = 0xFF1E8E3E, ACCENT = 0xFF1B2A4A;
 
     private TextView a11yState, notifState;
-    private TextView a11yBtn, notifBtn;
+    private TextView a11yBtn, notifBtn, postState, postBtn;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -56,6 +56,11 @@ public class MainActivity extends Activity {
         notifBtn = button("Activar");
         notifBtn.setOnClickListener(v -> startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         root.addView(row("2", "Acceso a notificaciones", "Para saber cuándo hay un video en reproducción.", notifState, notifBtn));
+
+        postState = new TextView(this);
+        postBtn = button("Activar");
+        postBtn.setOnClickListener(v -> askPost());
+        root.addView(row("3", "Aviso para volver", "Notificación para mostrar el botón si lo cierras.", postState, postBtn));
 
 
         TextView hint = text("¿Interruptor bloqueado? Información de la app → ⋮ → Permitir ajustes restringidos.", 13, MUTED, false);
@@ -96,6 +101,26 @@ public class MainActivity extends Activity {
         boolean a = accessibilityOn(), n = notificationsOn();
         setState(a11yState, a11yBtn, a);
         setState(notifState, notifBtn, n);
+        setState(postState, postBtn, getSystemService(android.app.NotificationManager.class).areNotificationsEnabled());
+    }
+
+    private void askPost() {
+        android.content.SharedPreferences p = getSharedPreferences("ajustes", MODE_PRIVATE);
+        if (android.os.Build.VERSION.SDK_INT >= 33 && !p.getBoolean("pidio_aviso", false)) {
+            p.edit().putBoolean("pidio_aviso", true).apply();
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);
+        } else if (android.os.Build.VERSION.SDK_INT >= 26) {
+            startActivity(new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName()));
+        } else {
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName())));
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int code, String[] perms, int[] res) {
+        super.onRequestPermissionsResult(code, perms, res);
+        onResume();
     }
 
     private void setState(TextView state, TextView btn, boolean on) {

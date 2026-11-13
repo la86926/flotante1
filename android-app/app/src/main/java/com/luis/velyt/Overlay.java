@@ -41,7 +41,10 @@ import java.util.Locale;
 class Overlay {
 
     private static final int BG = 0xEB1C1C1E;
-    private static final int MODE_PANEL = 0, MODE_BUBBLE = 1, MODE_CLOSE = 2;
+    private static final int MODE_PANEL = 0, MODE_BUBBLE = 1, MODE_CLOSE = 2, MODE_DOCK = 3;
+    private static final int DOCK_W = 24, DOCK_H = 64;
+    private TextView dock;
+    private int dockSide; // 0 = no, 1 = borde izquierdo, 2 = borde derecho
 
     private final SpeedService s;
     private final WindowManager wm;
@@ -196,13 +199,65 @@ class Overlay {
             return false;
         });
 
+        // Pestaña cuando está escondido en un borde
+        dock = new TextView(s);
+        dock.setTextColor(Color.WHITE);
+        dock.setTextSize(22);
+        dock.setTypeface(Typeface.DEFAULT_BOLD);
+        dock.setGravity(Gravity.CENTER);
+        dock.setIncludeFontPadding(false);
+        dock.setMinWidth(dp(DOCK_W));
+        dock.setMinHeight(dp(DOCK_H));
+        dock.setContentDescription("Mostrar botón de velocidad");
+        dock.setOnTouchListener(new Drag(this::undock));
+        dockSide = prefs.getInt("dock", 0);
+        if (dockSide != 0) { mode = MODE_DOCK; styleDock(); }
+
         setSpeed(1f);
         Point sc = screen();
         lastSW = sc.x;
         lastSH = sc.y;
     }
 
-    void toBubble() { setMode(MODE_BUBBLE); }
+    void toBubble() { if (mode != MODE_DOCK) setMode(MODE_BUBBLE); }
+
+    // ---------- Escondido en el borde ----------
+
+    @android.annotation.TargetApi(29)
+    private void excludeGestures() {
+        dock.setSystemGestureExclusionRects(
+                java.util.Collections.singletonList(new Rect(0, 0, dock.getWidth(), dock.getHeight())));
+    }
+
+    private void styleDock() {
+        boolean left = dockSide == 1;
+        dock.setText(left ? "›" : "‹"); // la flecha apunta hacia donde vuelve
+        float r = dp(14);
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(BG);
+        g.setStroke(dp(1.5f), 0x66FFFFFF);
+        g.setCornerRadii(left ? new float[]{0, 0, r, r, r, r, 0, 0} : new float[]{r, r, 0, 0, 0, 0, r, r});
+        dock.setBackground(g);
+    }
+
+    /** 1 si el dedo está pegado al borde izquierdo, 2 al derecho, 0 si no. */
+    private int nearEdge(float rawX) {
+        return rawX <= dp(14) ? 1 : rawX >= screen().x - dp(14) ? 2 : 0;
+    }
+
+    private void dock(int side) {
+        dockSide = side;
+        prefs.edit().putInt("dock", side).apply();
+        styleDock();
+        setMode(MODE_DOCK);
+        savePos();
+    }
+
+    private void undock() {
+        if (mode != MODE_DOCK) return;
+        setMode(MODE_BUBBLE);
+        savePos();
+    }
 
     void setTime(String t) { if (!t.equals(shotTimeLabel.getText().toString())) shotTimeLabel.setText(t); }
 
@@ -238,6 +293,7 @@ class Overlay {
             float fx = (lp.x + w / 2f) / lastSW, fy = (lp.y + hh / 2f) / lastSH;
             lp.x = Math.round(fx * sc.x - w / 2f);
             lp.y = Math.round(fy * sc.y - hh / 2f);
+            if (mode == MODE_DOCK) lp.x = dockSide == 1 ? 0 : sc.x - dp(DOCK_W);
             lastSW = sc.x;
             lastSH = sc.y;
             uncover(); // la foto ya no corresponde
@@ -254,7 +310,7 @@ class Overlay {
     // ---------- Mostrar / ocultar ----------
 
     private View viewFor(int m) {
-        return m == MODE_BUBBLE ? bubble : m == MODE_CLOSE ? closeCard : panel;
+        return m == MODE_BUBBLE ? bubble : m == MODE_CLOSE ? closeCard : m == MODE_DOCK ? dock : panel;
     }
 
     void show() {
@@ -262,9 +318,14 @@ class Overlay {
         current = viewFor(mode);
         if (mode == MODE_CLOSE) lp.flags |= WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
         else lp.flags &= ~WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+        if (mode == MODE_DOCK) lp.x = dockSide == 1 ? 0 : screen().x - dp(DOCK_W);
         try {
             wm.addView(current, lp);
             shown = true;
+            if (mode == MODE_DOCK && Build.VERSION.SDK_INT >= 29) {
+                // Para que el gesto "atrás" del borde no le quite los toques a la pestaña.
+                dock.post(this::excludeGestures);
+            }
             D.i("VYT_STATE overlay=shown mode=" + modeName());
             current.post(this::reclamp);
             current.postDelayed(this::logPos, 250);
@@ -292,8 +353,16 @@ class Overlay {
         }
         View nv = viewFor(m);
         int newW = nv.getWidth() > 0 ? nv.getWidth() : dp(m == MODE_BUBBLE ? 56 : m == MODE_CLOSE ? 190 : 312);
-        // Mantiene alineado el borde derecho (donde está la X / la burbuja).
-        if (oldW > 0) lp.x = lp.x + oldW - newW;
+        if (m == MODE_DOCK) {
+            lp.y += (dp(56) - dp(DOCK_H)) / 2;
+        } else if (mode == MODE_DOCK) {
+            lp.x = dockSide == 1 ? dp(8) : screen().x - dp(56 + 8);
+            lp.y += (dp(DOCK_H) - dp(56)) / 2;
+            dockSide = 0;
+            prefs.edit().putInt("dock", 0).apply();
+        } else if (oldW > 0) {
+            lp.x = lp.x + oldW - newW; // mantiene alineado el borde derecho
+        }
         mode = m;
         D.i("VYT_MODE " + modeName());
         if (wasShown) show();
@@ -301,7 +370,7 @@ class Overlay {
     }
 
     private String modeName() {
-        return mode == MODE_BUBBLE ? "bubble" : mode == MODE_CLOSE ? "close" : "expanded";
+        return mode == MODE_BUBBLE ? "bubble" : mode == MODE_CLOSE ? "close" : mode == MODE_DOCK ? "dock" : "expanded";
     }
 
     // ---------- Cubierta (para que no se vea el menú de YouTube) ----------
@@ -501,7 +570,7 @@ class Overlay {
     }
 
     void flash() {
-        View v = mode == MODE_BUBBLE ? bubble : label;
+        View v = mode == MODE_BUBBLE ? bubble : mode == MODE_DOCK ? dock : label;
         v.animate().cancel();
         v.setAlpha(0.3f);
         v.animate().alpha(1f).setDuration(350).start();
@@ -544,6 +613,8 @@ class Overlay {
         if (!shown) return;
         if (mode == MODE_BUBBLE) {
             D.i("VYT_POS mode=bubble bubble=" + center(bubble));
+        } else if (mode == MODE_DOCK) {
+            D.i("VYT_POS mode=dock dock=" + center(dock) + " side=" + (dockSide == 1 ? "left" : "right"));
         } else if (mode == MODE_CLOSE) {
             D.i("VYT_POS mode=close next=" + center(optNext) + " reopen=" + center(optReopen));
         } else {
@@ -565,14 +636,16 @@ class Overlay {
         private final Runnable onTap;
         private float downX, downY;
         private int startX, startY;
-        private boolean dragging;
+        private boolean dragging, gone;
 
         Drag(Runnable onTap) { this.onTap = onTap; }
 
         @Override
         public boolean onTouch(View v, MotionEvent e) {
+            if (gone && e.getActionMasked() != MotionEvent.ACTION_DOWN) return true;
             switch (e.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
+                    gone = false;
                     downX = e.getRawX();
                     downY = e.getRawY();
                     startX = lp.x;
@@ -589,7 +662,16 @@ class Overlay {
                         dragging = true;
                         v.setAlpha(onTap != null ? 0.85f : 1f);
                     }
+                    if (dragging && shown && mode == MODE_DOCK) {
+                        // Escondido en el borde: solo sube o baja; jalarlo hacia adentro lo devuelve.
+                        if ((dockSide == 1 ? dx : -dx) > dp(28)) { gone = true; v.setAlpha(1f); undock(); return true; }
+                        int[] c = clampXY(lp.x, startY + (int) dy);
+                        lp.y = c[1];
+                        try { wm.updateViewLayout(current, lp); } catch (Exception ignored) { }
+                        return true;
+                    }
                     if (dragging && shown) {
+                        if (v == bubble) v.setAlpha(nearEdge(e.getRawX()) != 0 ? 0.4f : 0.85f); // aviso: se va a esconder
                         int[] c = clampXY(startX + (int) dx, startY + (int) dy);
                         lp.x = c[0];
                         lp.y = c[1];
@@ -601,6 +683,8 @@ class Overlay {
                 case MotionEvent.ACTION_UP:
                     v.setAlpha(v == minimize ? 0.85f : 1f);
                     if (dragging) {
+                        int side = v == bubble && mode == MODE_BUBBLE ? nearEdge(e.getRawX()) : 0;
+                        if (side != 0) { dock(side); return true; }
                         savePos();
                         D.i("VYT_MOVED x=" + lp.x + " y=" + lp.y);
                         v.postDelayed(Overlay.this::logPos, 150);

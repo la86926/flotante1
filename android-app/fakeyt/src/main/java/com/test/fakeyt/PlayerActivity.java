@@ -159,9 +159,13 @@ public class PlayerActivity extends Activity {
     }
 
     /** Como YouTube: cada video tiene su título en la sesión multimedia. */
+    private String lastTitle;
+
     private void loadVideo(android.content.Intent i) {
         String t = i != null ? i.getStringExtra("video") : null;
         if (t == null) t = "Video 1";
+        if (lastTitle != null && !lastTitle.equals(t)) { speed = 1f; Log.i(T, "FAKEYT newvideo speed=1.00"); }
+        lastTitle = t;
         session.setMetadata(new android.media.MediaMetadata.Builder()
                 .putString(android.media.MediaMetadata.METADATA_KEY_TITLE, t)
                 .putLong(android.media.MediaMetadata.METADATA_KEY_DURATION, 600000)
@@ -184,7 +188,7 @@ public class PlayerActivity extends Activity {
 
     private void publish() {
         session.setPlaybackState(new PlaybackState.Builder()
-                .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, 120000, speed)
+                .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, 120000, 1f)
                 .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE)
                 .build());
     }

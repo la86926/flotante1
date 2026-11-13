@@ -132,6 +132,7 @@ adb logcat -G 16M || true
 adb logcat -c
 clear_logs
 adb shell cmd notification allow_listener com.luis.velyt/com.luis.velyt.MediaListener || true
+adb shell pm grant com.luis.velyt android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 adb shell settings put secure enabled_accessibility_services com.luis.velyt/com.luis.velyt.SpeedService
 adb shell settings put secure accessibility_enabled 1
 wait_for "VYT_READY" 30 || fail "el servicio de accesibilidad no arrancó"
@@ -220,6 +221,49 @@ tap "$B2X" "$B2Y"
 wait_for "VYT_MODE expanded" 5 || fail "tocar la burbuja no abrió los controles"
 ok "minimizar, arrastrar y volver a abrir funcionan"
 
+echo "== 8b. Esconder en el borde: pestaña, subir/bajar y volver"
+clear_logs
+read_pos
+tap "$NX" "$NY"
+wait_for "VYT_POS mode=bubble" 5 || fail "no se minimizó"
+read -r BX BY <<<"$(xy bubble "$(last 'VYT_POS mode=bubble')")"
+adb shell input swipe "$BX" "$BY" $((SW-2)) "$BY" 500
+wait_for "VYT_MODE dock" 5 || fail "la burbuja no se escondió en el borde derecho"
+wait_for "VYT_POS mode=dock" 5 || fail "sin posición de la pestaña"
+D=$(last "VYT_POS mode=dock"); read -r DX DY <<<"$(xy dock "$D")"
+[[ "$D" == *"side=right"* ]] && (( DX > SW - SW/8 )) || fail "la pestaña no quedó en el borde derecho: $D"
+sleep 0.4
+shot 05b-escondido-en-el-borde
+clear_logs
+DY2=$((DY > SH/2 ? DY - SH/5 : DY + SH/5))
+adb shell input swipe "$DX" "$DY" "$DX" "$DY2" 500
+wait_for "VYT_MOVED" 5 || fail "la pestaña no se pudo subir/bajar"
+wait_for "VYT_POS mode=dock" 5 || fail "la pestaña dejó de estar escondida al moverla"
+read -r D2X D2Y <<<"$(xy dock "$(last 'VYT_POS mode=dock')")"
+DD=$((D2Y - DY)); (( ${DD#-} > SH/8 )) || fail "la pestaña no se movió en vertical ($DY → $D2Y)"
+logs | grep -q "VYT_MODE bubble" && fail "subir/bajar la pestaña no debe sacarla"
+clear_logs
+tap "$D2X" "$D2Y"
+wait_for "VYT_MODE bubble" 5 || fail "tocar la pestaña no devolvió la burbuja"
+wait_for "VYT_POS mode=bubble" 5 || fail "sin posición de la burbuja"
+read -r BX BY <<<"$(xy bubble "$(last 'VYT_POS mode=bubble')")"
+(( BX > SW/2 && BX < SW )) || fail "la burbuja no volvió junto al borde derecho ($BX)"
+clear_logs
+adb shell input swipe "$BX" "$BY" 2 "$BY" 600
+wait_for "VYT_MODE dock" 5 || fail "no se escondió en el borde izquierdo"
+wait_for "VYT_POS mode=dock" 5 || fail "sin posición de la pestaña izquierda"
+D=$(last "VYT_POS mode=dock"); read -r DX DY <<<"$(xy dock "$D")"
+[[ "$D" == *"side=left"* ]] || fail "la pestaña no quedó en el borde izquierdo: $D"
+clear_logs
+adb shell input swipe "$DX" "$DY" $((DX + SW/3)) "$DY" 400
+wait_for "VYT_MODE bubble" 5 || fail "jalar la pestaña hacia adentro no devolvió la burbuja"
+wait_for "VYT_POS mode=bubble" 5 || fail "sin posición de la burbuja"
+read -r BX BY <<<"$(xy bubble "$(last 'VYT_POS mode=bubble')")"
+tap "$BX" "$BY"
+wait_for "VYT_MODE expanded" 5 || fail "la burbuja no abrió los controles después de volver"
+no_decoys
+ok "se esconde en los dos bordes, la pestaña sube/baja y vuelve al tocarla o jalarla"
+
 echo "== 9. Con los controles reabiertos, + sigue funcionando"
 clear_logs
 read_pos
@@ -281,9 +325,30 @@ shot 08-cerrado-este-video
 clear_logs
 adb shell am start -W -n $YT/com.test.fakeyt.PlayerActivity --es video "Video 2" >/dev/null
 wait_for "VYT_RESTORE otro_video" 10 || fail "no detectó el video nuevo"
+wait_for "VYT_NEWVIDEO speed=1.00" 5 || fail "no actualizó el número a la velocidad del video nuevo"
 wait_for "VYT_STATE overlay=shown" 10 || fail "no reapareció en el video siguiente"
 [[ "$(last 'VYT_STATE overlay=shown')" == *"mode=bubble"* ]] || fail "el video siguiente no empezó en burbuja"
 ok "Próximo video: se oculta y vuelve (en burbuja) en el siguiente video"
+
+echo "== 11b. Cerrado con la X → la notificación lo devuelve"
+clear_logs
+expand
+read_pos
+tap "$CX" "$CY"
+wait_for "VYT_POS mode=close" 5 || fail "no se abrieron las opciones"
+P=$(last "VYT_POS mode=close"); read -r OX OY <<<"$(xy next "$P")"
+tap "$OX" "$OY"
+wait_for "VYT_DISMISS video" 5 || fail "Próximo video no respondió"
+wait_for "VYT_NOTIF on" 5 || fail "no apareció la notificación para volver a mostrarlo ($(last VYT_NOTIF))"
+adb shell dumpsys notification --noredact 2>/dev/null | grep -q "pkg=com.luis.velyt" || fail "la notificación no está en la barra de notificaciones"
+sleep 1
+last_state_is hidden || fail "el botón no se quitó"
+clear_logs
+adb shell am broadcast -n com.luis.velyt/.RestoreReceiver >/dev/null
+wait_for "VYT_RESTORE notificacion" 5 || fail "la notificación no devolvió el botón"
+wait_for "VYT_STATE overlay=shown" 8 || fail "el botón no reapareció tras la notificación"
+wait_for "VYT_NOTIF off" 5 || fail "la notificación no se quitó al volver el botón"
+ok "al cerrarlo aparece la notificación, y con ella vuelve el botón"
 
 echo "== 12. X → Al reabrir YouTube"
 clear_logs
@@ -315,7 +380,7 @@ expand
 read_pos
 read -r SW SH <<<"$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1 | tr 'x' ' ')"
 (( PX < (SW > SH ? SW : SH) )) || fail "botón fuera de pantalla en horizontal"
-for v in 1.50 1.75; do
+for v in 1.25 1.50; do
   clear_logs
   tap "$PX" "$PY"
   expect_speed $v
