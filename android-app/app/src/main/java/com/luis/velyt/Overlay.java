@@ -54,7 +54,8 @@ class Overlay {
 
     private final LinearLayout panel, closeCard;
     private final TextView minus, label, plus, bubble, close, optNext, optReopen;
-    private final ImageView minimize, shotBtn;
+    private final ImageView minimize, shotBtn, coverBtn;
+    private float k = 1f; // en pantallas angostas los botones se achican para que quepan todos
     private final LinearLayout shotTimeBtn;
     private final TextView shotTimeLabel;
 
@@ -91,6 +92,8 @@ class Overlay {
         panel = new LinearLayout(s);
         panel.setOrientation(LinearLayout.HORIZONTAL);
         panel.setGravity(Gravity.CENTER_VERTICAL);
+        Point sc0 = screen();
+        k = Math.min(1f, (Math.min(sc0.x, sc0.y) / s.getResources().getDisplayMetrics().density - 60f) / 300f);
         panel.setPadding(dp(5), dp(5), dp(5), dp(5));
         panel.setBackground(round(BG, dp(29)));
 
@@ -139,15 +142,23 @@ class Overlay {
         shotTimeLabel.setIncludeFontPadding(false);
         shotTimeBtn.addView(shotTimeLabel);
 
-        panel.addView(minus, new LinearLayout.LayoutParams(dp(42), dp(42)));
-        panel.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(42)));
-        panel.addView(plus, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        // Portada del video
+        coverBtn = new ImageView(s);
+        coverBtn.setImageResource(R.drawable.ic_cover);
+        coverBtn.setScaleType(ImageView.ScaleType.CENTER);
+        coverBtn.setContentDescription("Portada del video");
+
+        int hh = dp(42 * k);
+        panel.addView(minus, new LinearLayout.LayoutParams(hh, hh));
+        panel.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, hh));
+        panel.addView(plus, new LinearLayout.LayoutParams(hh, hh));
         View line = separator();
-        panel.addView(shotBtn, new LinearLayout.LayoutParams(dp(38), dp(42)));
-        panel.addView(shotTimeBtn, new LinearLayout.LayoutParams(dp(42), dp(42)));
+        panel.addView(shotBtn, new LinearLayout.LayoutParams(dp(38 * k), hh));
+        panel.addView(shotTimeBtn, new LinearLayout.LayoutParams(hh, hh));
+        panel.addView(coverBtn, new LinearLayout.LayoutParams(dp(38 * k), hh));
         View line2 = separator();
-        panel.addView(minimize, new LinearLayout.LayoutParams(dp(36), dp(42)));
-        panel.addView(close, new LinearLayout.LayoutParams(dp(36), dp(42)));
+        panel.addView(minimize, new LinearLayout.LayoutParams(dp(36 * k), hh));
+        panel.addView(close, new LinearLayout.LayoutParams(dp(36 * k), hh));
 
         // ----- Burbuja -----
         bubble = new TextView(s);
@@ -190,6 +201,7 @@ class Overlay {
         line2.setOnTouchListener(new Drag(null));
         shotBtn.setOnTouchListener(new Drag(() -> s.capture(false)));
         shotTimeBtn.setOnTouchListener(new Drag(() -> s.capture(true)));
+        coverBtn.setOnTouchListener(new Drag(s::cover));
         panel.setOnTouchListener(new Drag(null));
         bubble.setOnTouchListener(new Drag(() -> setMode(MODE_PANEL)));
         optNext.setOnClickListener(v -> { setMode(MODE_PANEL); s.dismiss(false); });
@@ -265,8 +277,8 @@ class Overlay {
         View v = new View(s);
         v.setBackgroundColor(0x33FFFFFF);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(1), dp(24));
-        p.leftMargin = dp(4);
-        p.rightMargin = dp(2);
+        p.leftMargin = dp(4 * k);
+        p.rightMargin = dp(2 * k);
         panel.addView(v, p);
         return v;
     }
@@ -352,7 +364,7 @@ class Overlay {
             shown = false;
         }
         View nv = viewFor(m);
-        int newW = nv.getWidth() > 0 ? nv.getWidth() : dp(m == MODE_BUBBLE ? 56 : m == MODE_CLOSE ? 190 : 312);
+        int newW = nv.getWidth() > 0 ? nv.getWidth() : dp(m == MODE_BUBBLE ? 56 : m == MODE_CLOSE ? 190 : 352 * k);
         if (m == MODE_DOCK) {
             lp.y += (dp(56) - dp(DOCK_H)) / 2;
         } else if (mode == MODE_DOCK) {
@@ -620,7 +632,7 @@ class Overlay {
         } else {
             D.i("VYT_POS mode=expanded minus=" + center(minus) + " label=" + center(label)
                     + " plus=" + center(plus) + " min=" + center(minimize) + " close=" + center(close)
-                    + " shot=" + center(shotBtn) + " shott=" + center(shotTimeBtn));
+                    + " shot=" + center(shotBtn) + " shott=" + center(shotTimeBtn) + " cover=" + center(coverBtn));
         }
     }
 

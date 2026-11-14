@@ -453,6 +453,11 @@ public class SpeedService extends AccessibilityService {
     // ---------- Foto del frame ----------
     boolean capturing;
 
+    void cover() {
+        if (Build.VERSION.SDK_INT < 29) { overlay.flash(); return; }
+        Cover.save(this);
+    }
+
     @android.annotation.TargetApi(30)
     void capture(boolean withTime) {
         if (Build.VERSION.SDK_INT < 30 || capturing || automator.busy || covering || scheduled) { overlay.flash(); return; }

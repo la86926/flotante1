@@ -227,7 +227,7 @@ final class Frame {
         return t + stamp(i.pos) + (withTime ? " (con tiempo)" : "") + ".png";
     }
 
-    private static void write(SpeedService s, Bitmap b, String name) throws Exception {
+    static void write(SpeedService s, Bitmap b, String name) throws Exception {
         ContentResolver cr = s.getContentResolver();
         ContentValues v = new ContentValues();
         v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);

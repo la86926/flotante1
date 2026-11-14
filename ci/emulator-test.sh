@@ -74,6 +74,7 @@ read_pos() {
   read -r CX CY <<<"$(xy close "$P")"
   read -r FX FY <<<"$(xy shot "$P")"
   read -r GX GY <<<"$(xy shott "$P")"
+  read -r KX KY <<<"$(xy cover "$P")"
 }
 # El menú de YouTube debe abrirse y cerrarse SIEMPRE con la cubierta puesta (que no se vea).
 cover_ok() {
@@ -295,6 +296,18 @@ adb shell ls "/sdcard/Pictures/VelocidadYT\ de\ L/" > "$OUT/fotos.txt" 2>&1
 adb pull "/sdcard/Pictures/VelocidadYT de L/." "$OUT/fotos/" >/dev/null 2>&1 || true
 no_decoys
 ok "fotos guardadas: $(echo "$N1" | grep -oE 'size=[0-9x]+') y con tiempo"
+
+echo "== 9c. Portada del video"
+clear_logs
+read_pos
+tap "$KX" "$KY"
+wait_for "VYT_PORTADA ok" 12 || fail "no se guardó la portada ($(last 'VYT_PORTADA'))"
+N3=$(last "VYT_PORTADA ok")
+[[ "$N3" == *"(portada).png"* && "$N3" == *"size=640x360"* ]] || fail "portada inesperada: $N3"
+sleep 1
+adb shell ls "/sdcard/Pictures/VelocidadYT\ de\ L/" | grep -q "(portada).png" || fail "la portada no está en la carpeta de fotos"
+no_decoys
+ok "portada guardada ($(echo "$N3" | grep -oE 'size=[0-9x]+'))"
 
 echo "== 10. X → tocar fuera cancela"
 clear_logs

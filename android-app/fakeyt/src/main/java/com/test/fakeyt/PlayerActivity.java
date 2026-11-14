@@ -161,6 +161,12 @@ public class PlayerActivity extends Activity {
     /** Como YouTube: cada video tiene su título en la sesión multimedia. */
     private String lastTitle;
 
+    private static android.graphics.Bitmap portada() {
+        android.graphics.Bitmap b = android.graphics.Bitmap.createBitmap(640, 360, android.graphics.Bitmap.Config.ARGB_8888);
+        b.eraseColor(0xFF2D6BFF);
+        return b;
+    }
+
     private void loadVideo(android.content.Intent i) {
         String t = i != null ? i.getStringExtra("video") : null;
         if (t == null) t = "Video 1";
@@ -169,6 +175,7 @@ public class PlayerActivity extends Activity {
         session.setMetadata(new android.media.MediaMetadata.Builder()
                 .putString(android.media.MediaMetadata.METADATA_KEY_TITLE, t)
                 .putLong(android.media.MediaMetadata.METADATA_KEY_DURATION, 600000)
+                .putBitmap(android.media.MediaMetadata.METADATA_KEY_ART, portada())
                 .build());
         playing = true;
         publish();

@@ -1,5 +1,5 @@
 package com.luis.velyt;
 
 final class BuildConfigLite {
-    static final String VERSION = "1.6";
+    static final String VERSION = "1.7";
 }
