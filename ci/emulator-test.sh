@@ -303,7 +303,7 @@ read_pos
 tap "$KX" "$KY"
 wait_for "VYT_PORTADA ok" 12 || fail "no se guardó la portada ($(last 'VYT_PORTADA'))"
 N3=$(last "VYT_PORTADA ok")
-[[ "$N3" == *"(portada).png"* && "$N3" == *"size=640x360"* ]] || fail "portada inesperada: $N3"
+[[ "$N3" == *"(portada).png"* && "$N3" == *"src=sesion"* ]] || fail "portada inesperada: $N3"
 sleep 1
 adb shell ls "/sdcard/Pictures/VelocidadYT\ de\ L/" | grep -q "(portada).png" || fail "la portada no está en la carpeta de fotos"
 no_decoys
