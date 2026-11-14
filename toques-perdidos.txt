@@ -1,0 +1,122 @@
+--- esperado 2.75, va en 2.50
+11-14 17:33:03.397 I/InputDispatcher(  629):     564: channelName='66b08f7 InputMethod', status=NORMAL, monitor=false, responsive=true
+11-14 17:33:03.397 I/InputDispatcher(  629):     540: channelName='c7dc650 ScreenDecorOverlayBottom', status=NORMAL, monitor=false, responsive=true
+11-14 17:33:03.397 I/InputDispatcher(  629):     418: channelName='b1f23c7 com.android.systemui.wallpapers.ImageWallpaper', status=NORMAL, monitor=false, responsive=true
+11-14 17:33:03.397 I/InputDispatcher(  629):     610: channelName='1fff4d com.luis.velyt', status=NORMAL, monitor=false, responsive=true
+11-14 17:33:03.397 I/InputDispatcher(  629):     471: channelName='1c1d2e3 ShellDropTarget', status=NORMAL, monitor=false, responsive=true
+11-14 17:33:03.397 I/InputDispatcher(  629):   RecentQueue: length=10
+11-14 17:33:03.397 I/InputDispatcher(  629):     FocusEvent(hasFocus=false), age=1807ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     FocusEvent(hasFocus=true), age=1772ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     KeyEvent(deviceId=-1, eventTime=62447000000, source=KEYBOARD, displayId=-1, action=DOWN, flags=0x00000008, keyCode=BACK(4), scanCode=0, metaState=0x00000000, repeatCount=0), policyFlags=0x6b000000, age=1660ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     KeyEvent(deviceId=-1, eventTime=62447000000, source=KEYBOARD, displayId=-1, action=UP, flags=0x00000008, keyCode=BACK(4), scanCode=0, metaState=0x00000000, repeatCount=0), policyFlags=0x6b000000, age=1660ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     FocusEvent(hasFocus=false), age=1638ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     FocusEvent(hasFocus=true), age=1623ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     MotionEvent(deviceId=-1, eventTime=63889000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (111.0, 291.0)]), policyFlags=0x6b000000, age=218ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     MotionEvent(deviceId=-1, eventTime=63889000000, source=TOUCHSCREEN, displayId=0, action=UP, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (111.0, 291.0)]), policyFlags=0x6b000000, age=218ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     MotionEvent(deviceId=-1, eventTime=64057000000, source=TOUCHSCREEN, displayId=0, action=DOWN, actionButton=0x00000000, flags=0x00000800, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (64.0, 63.0)]), policyFlags=0x47020000, age=50ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     MotionEvent(deviceId=-1, eventTime=64069000000, source=TOUCHSCREEN, displayId=0, action=UP, actionButton=0x00000000, flags=0x00000000, metaState=0x00000000, buttonState=0x00000000, classification=NONE, edgeFlags=0x00000000, xPrecision=1.0, yPrecision=1.0, xCursorPosition=nan, yCursorPosition=nan, pointers=[0: (111.0, 291.0)]), policyFlags=0x6b000000, age=38ms
+11-14 17:33:03.397 I/InputDispatcher(  629):   PendingEvent: <none>
+11-14 17:33:03.397 I/InputDispatcher(  629):   InboundQueue: <empty>
+11-14 17:33:03.397 I/InputDispatcher(  629):   CommandQueue: <empty>
+11-14 17:33:03.397 I/InputDispatcher(  629):   TouchModePerDisplay:
+11-14 17:33:03.397 I/InputDispatcher(  629):     Display: 0 TouchMode: 1
+11-14 17:33:03.397 I/InputDispatcher(  629):   Configuration:
+11-14 17:33:03.397 I/InputDispatcher(  629):     KeyRepeatDelay: 50ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     KeyRepeatTimeout: 400ms
+11-14 17:33:03.397 I/InputDispatcher(  629):     LatencyTracker:
+11-14 17:33:03.397 I/InputDispatcher(  629):       mTimelines.size() = 0
+11-14 17:33:03.397 I/InputDispatcher(  629):       mEventTimes.size() = 0
+11-14 17:33:03.397 I/InputDispatcher(  629):     LatencyAggregatorWithHistograms:
+11-14 17:33:03.397 I/InputDispatcher(  629):      Histograms:
+11-14 17:33:03.397 I/InputDispatcher(  629):       mLastSlowEventTime=0
+11-14 17:33:03.397 I/InputDispatcher(  629):       mNumEventsSinceLastSlowEventReport = 0
+11-14 17:33:03.397 I/InputDispatcher(  629):       mNumSkippedSlowEvents = 0
+11-14 17:33:03.397 I/InputDispatcher(  629):   InputTracer: Enabled
+11-14 17:33:03.397 E/InputDispatcher(  629): Inconsistent event: MotionEvent { action=UP, id[0]=0, x[0]=64, y[0]=63, toolType[0]=UNKNOWN, eventTime=64107000000, downTime=64057000000, deviceId=-1, source=TOUCHSCREEN, displayId=0, eventId=0xef023e95}, reason: Injection on 0 Received ACTION_UP but no pointers are currently down for device DeviceId(-1)
+11-14 17:33:03.503 I/FAKEYT  ( 2018): FAKEYT dialogs=1
+11-14 17:33:03.546 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:03.546 I/VYT     ( 1907): VYT_STEP target=1.75
+11-14 17:33:03.607 I/FAKEYT  ( 2018): FAKEYT dialogs=2
+11-14 17:33:03.613 I/FAKEYT  ( 2018): FAKEYT speed=1.25
+11-14 17:33:03.613 I/FAKEYT  ( 2018): FAKEYT dialogs=1
+11-14 17:33:03.702 I/VYT     ( 1907): VYT_PANEL cur=1.25 max=4.0 goal=1.50
+11-14 17:33:03.710 I/FAKEYT  ( 2018): FAKEYT speed=1.50
+11-14 17:33:03.733 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:03.734 I/VYT     ( 1907): VYT_STEP target=2.00
+11-14 17:33:03.785 I/VYT     ( 1907): VYT_RETARGET 2.0
+11-14 17:33:03.872 I/VYT     ( 1907): VYT_PANEL cur=1.5 max=4.0 goal=2.00
+11-14 17:33:03.875 I/FAKEYT  ( 2018): FAKEYT speed=2.00
+11-14 17:33:03.914 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:03.915 I/VYT     ( 1907): VYT_STEP target=2.25
+11-14 17:33:04.007 I/VYT     ( 1907): VYT_RETARGET 2.25
+11-14 17:33:04.098 I/VYT     ( 1907): VYT_PANEL cur=2.0 max=4.0 goal=2.25
+11-14 17:33:04.108 I/FAKEYT  ( 2018): FAKEYT speed=2.25
+11-14 17:33:04.109 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:04.110 I/VYT     ( 1907): VYT_STEP target=2.50
+11-14 17:33:04.236 I/VYT     ( 1907): VYT_RETARGET 2.5
+11-14 17:33:04.320 I/VYT     ( 1907): VYT_PANEL cur=2.25 max=4.0 goal=2.50
+11-14 17:33:04.323 I/FAKEYT  ( 2018): FAKEYT speed=2.50
+11-14 17:33:04.459 I/FAKEYT  ( 2018): FAKEYT dialogs=0
+11-14 17:33:04.534 I/VYT     ( 1907): VYT_LEARN rect=[0,336][320,592]
+11-14 17:33:04.535 I/VYT     ( 1907): VYT_APPLY target=2.50 result=2.50 ok=true via=barra ms=1205
+--- esperado 0.25, va en 0.50
+11-14 17:33:11.481 I/FAKEYT  ( 2018): FAKEYT dialogs=1
+11-14 17:33:11.607 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:11.608 I/VYT     ( 1907): VYT_STEP target=3.25
+11-14 17:33:11.628 I/VYT     ( 1907): VYT_PANEL cur=4.0 max=4.0 goal=3.75
+11-14 17:33:11.632 I/FAKEYT  ( 2018): FAKEYT speed=3.75
+11-14 17:33:11.702 I/VYT     ( 1907): VYT_RETARGET 3.25
+11-14 17:33:11.782 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:11.782 I/VYT     ( 1907): VYT_STEP target=3.00
+11-14 17:33:11.796 I/VYT     ( 1907): VYT_PANEL cur=3.75 max=4.0 goal=3.25
+11-14 17:33:11.800 I/FAKEYT  ( 2018): FAKEYT speed=3.25
+11-14 17:33:11.928 I/VYT     ( 1907): VYT_RETARGET 3.0
+11-14 17:33:11.954 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:11.955 I/VYT     ( 1907): VYT_STEP target=2.75
+11-14 17:33:12.012 I/VYT     ( 1907): VYT_PANEL cur=3.25 max=4.0 goal=3.00
+11-14 17:33:12.015 I/FAKEYT  ( 2018): FAKEYT speed=3.00
+11-14 17:33:12.128 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:12.128 I/VYT     ( 1907): VYT_STEP target=2.50
+11-14 17:33:12.143 I/VYT     ( 1907): VYT_RETARGET 2.5
+11-14 17:33:12.228 I/VYT     ( 1907): VYT_PANEL cur=3.0 max=4.0 goal=2.50
+11-14 17:33:12.233 I/FAKEYT  ( 2018): FAKEYT speed=2.50
+11-14 17:33:12.300 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:12.301 I/VYT     ( 1907): VYT_STEP target=2.25
+11-14 17:33:12.361 I/VYT     ( 1907): VYT_RETARGET 2.25
+11-14 17:33:12.445 I/VYT     ( 1907): VYT_PANEL cur=2.5 max=4.0 goal=2.25
+11-14 17:33:12.448 I/FAKEYT  ( 2018): FAKEYT speed=2.25
+11-14 17:33:12.475 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:12.476 I/VYT     ( 1907): VYT_STEP target=2.00
+11-14 17:33:12.576 I/VYT     ( 1907): VYT_RETARGET 2.0
+11-14 17:33:12.649 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:12.650 I/VYT     ( 1907): VYT_STEP target=1.75
+11-14 17:33:12.659 I/VYT     ( 1907): VYT_PANEL cur=2.25 max=4.0 goal=2.00
+11-14 17:33:12.661 I/FAKEYT  ( 2018): FAKEYT speed=2.00
+11-14 17:33:12.790 I/VYT     ( 1907): VYT_RETARGET 1.75
+11-14 17:33:12.822 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:12.823 I/VYT     ( 1907): VYT_STEP target=1.50
+11-14 17:33:12.876 I/VYT     ( 1907): VYT_PANEL cur=2.0 max=4.0 goal=1.75
+11-14 17:33:12.881 I/FAKEYT  ( 2018): FAKEYT speed=1.75
+11-14 17:33:12.997 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:12.998 I/VYT     ( 1907): VYT_STEP target=1.25
+11-14 17:33:13.009 I/VYT     ( 1907): VYT_RETARGET 1.25
+11-14 17:33:13.093 I/VYT     ( 1907): VYT_PANEL cur=1.75 max=4.0 goal=1.25
+11-14 17:33:13.095 I/FAKEYT  ( 2018): FAKEYT speed=1.25
+11-14 17:33:13.171 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:13.172 I/VYT     ( 1907): VYT_STEP target=1.00
+11-14 17:33:13.227 I/VYT     ( 1907): VYT_RETARGET 1.0
+11-14 17:33:13.310 I/VYT     ( 1907): VYT_PANEL cur=1.25 max=4.0 goal=1.00
+11-14 17:33:13.312 I/FAKEYT  ( 2018): FAKEYT speed=1.00
+11-14 17:33:13.346 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:13.346 I/VYT     ( 1907): VYT_STEP target=0.75
+11-14 17:33:13.440 I/VYT     ( 1907): VYT_RETARGET 0.75
+11-14 17:33:13.519 I/VYT     ( 1907): VYT_TOUCH d
+11-14 17:33:13.520 I/VYT     ( 1907): VYT_STEP target=0.50
+11-14 17:33:13.540 I/VYT     ( 1907): VYT_PANEL cur=1.0 max=4.0 goal=0.75
+11-14 17:33:13.544 I/FAKEYT  ( 2018): FAKEYT speed=0.75
+11-14 17:33:13.671 I/VYT     ( 1907): VYT_RETARGET 0.5
+11-14 17:33:13.756 I/VYT     ( 1907): VYT_PANEL cur=0.75 max=4.0 goal=0.50
+11-14 17:33:13.759 I/FAKEYT  ( 2018): FAKEYT speed=0.50
+11-14 17:33:13.895 I/FAKEYT  ( 2018): FAKEYT dialogs=0
+11-14 17:33:13.964 I/VYT     ( 1907): VYT_LEARN rect=[0,336][320,592]
+11-14 17:33:13.964 I/VYT     ( 1907): VYT_APPLY target=0.50 result=0.50 ok=true via=barra ms=2748
