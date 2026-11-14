@@ -1,0 +1,609 @@
+--------- beginning of kernel
+--------- beginning of main
+--------- beginning of system
+I/VYT     ( 2092): VYT_MARK_1
+I/VYT     ( 2139): VYT_SESSIONS ok
+I/VYT     ( 2139): VYT_READY
+I/VYT     ( 2139): VYT_FG youtube=true
+I/VYT     ( 2423): VYT_MARK_2
+I/FAKEYT  ( 2249): FAKEYT video=Video 1
+I/FAKEYT  ( 2249): FAKEYT player open
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=98,320
+I/VYT     ( 2457): VYT_MARK_3
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,315 label=67,315 plus=111,315 min=258,315 close=289,315 shot=151,315 shott=186,315 cover=220,315
+I/VYT     ( 2487): VYT_MARK_4
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.25
+I/VYT     ( 2139): VYT_SESSION_SPEED no
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.0 max=4.0 goal=1.25
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,402][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.25 result=1.25 ok=true via=preset ms=1045
+I/VYT     ( 2536): VYT_MARK_5
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.00
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.25 max=4.0 goal=1.00
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.00 result=1.00 ok=true via=preset ms=518
+I/VYT     ( 2573): VYT_MARK_6
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.0 max=4.0 goal=1.25
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.25 result=1.25 ok=true via=preset ms=571
+I/VYT     ( 2615): VYT_MARK_7
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.50
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.25 max=4.0 goal=1.50
+I/FAKEYT  ( 2249): FAKEYT speed=1.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.50 result=1.50 ok=true via=preset ms=514
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.75
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.5 max=4.0 goal=1.75
+I/FAKEYT  ( 2249): FAKEYT speed=1.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.00
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.75 result=1.75 ok=true via=barra ms=560
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.75 max=4.0 goal=2.00
+I/FAKEYT  ( 2249): FAKEYT speed=2.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.00 result=2.00 ok=true via=preset ms=496
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.0 max=4.0 goal=2.25
+I/FAKEYT  ( 2249): FAKEYT speed=2.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.50
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.25 result=2.25 ok=true via=barra ms=562
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.25 max=4.0 goal=2.50
+I/FAKEYT  ( 2249): FAKEYT speed=2.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.50 result=2.50 ok=true via=barra ms=486
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.75
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.5 max=4.0 goal=2.75
+I/FAKEYT  ( 2249): FAKEYT speed=2.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.75 result=2.75 ok=true via=barra ms=487
+I/VYT     ( 2741): VYT_MARK_8
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.00
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.75 max=4.0 goal=3.00
+I/FAKEYT  ( 2249): FAKEYT speed=3.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.25
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.00 result=3.00 ok=true via=barra ms=553
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.0 max=4.0 goal=3.25
+I/FAKEYT  ( 2249): FAKEYT speed=3.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.25 result=3.25 ok=true via=barra ms=474
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.50
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.25 max=4.0 goal=3.50
+I/FAKEYT  ( 2249): FAKEYT speed=3.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.75
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.50 result=3.50 ok=true via=barra ms=557
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.5 max=4.0 goal=3.75
+I/FAKEYT  ( 2249): FAKEYT speed=3.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.75 result=3.75 ok=true via=barra ms=480
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=4.00
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.75 max=4.0 goal=4.00
+I/FAKEYT  ( 2249): FAKEYT speed=4.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=4.00 result=4.00 ok=true via=barra ms=568
+I/VYT     ( 2843): VYT_MARK_9
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.75
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=4.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=4.0 max=4.0 goal=3.75
+I/FAKEYT  ( 2249): FAKEYT speed=3.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.75 result=3.75 ok=true via=barra ms=479
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.50
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.75 max=4.0 goal=3.50
+I/FAKEYT  ( 2249): FAKEYT speed=3.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.25
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.50 result=3.50 ok=true via=barra ms=552
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.5 max=4.0 goal=3.25
+I/FAKEYT  ( 2249): FAKEYT speed=3.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.25 result=3.25 ok=true via=barra ms=497
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=3.00
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.25 max=4.0 goal=3.00
+I/FAKEYT  ( 2249): FAKEYT speed=3.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=3.00 result=3.00 ok=true via=barra ms=488
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.75
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=3.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=3.0 max=4.0 goal=2.75
+I/FAKEYT  ( 2249): FAKEYT speed=2.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.50
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.75 result=2.75 ok=true via=barra ms=547
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.75 max=4.0 goal=2.50
+I/FAKEYT  ( 2249): FAKEYT speed=2.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.50 result=2.50 ok=true via=barra ms=493
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.5 max=4.0 goal=2.25
+I/FAKEYT  ( 2249): FAKEYT speed=2.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=2.00
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.25 result=2.25 ok=true via=barra ms=552
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.25 max=4.0 goal=2.00
+I/FAKEYT  ( 2249): FAKEYT speed=2.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=2.00 result=2.00 ok=true via=preset ms=475
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.75
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=2.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=2.0 max=4.0 goal=1.75
+I/FAKEYT  ( 2249): FAKEYT speed=1.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.75 result=1.75 ok=true via=barra ms=485
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.50
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.75 max=4.0 goal=1.50
+I/FAKEYT  ( 2249): FAKEYT speed=1.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.50 result=1.50 ok=true via=preset ms=496
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.5 max=4.0 goal=1.25
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.00
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.25 result=1.25 ok=true via=preset ms=551
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.25 max=4.0 goal=1.00
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.00 result=1.00 ok=true via=preset ms=424
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=0.75
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.0 max=4.0 goal=0.75
+I/FAKEYT  ( 2249): FAKEYT speed=0.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=0.50
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=0.75 result=0.75 ok=true via=barra ms=545
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=0.75
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=0.75 max=4.0 goal=0.50
+I/FAKEYT  ( 2249): FAKEYT speed=0.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=0.50 result=0.50 ok=true via=barra ms=445
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=0.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=0.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=0.5 max=4.0 goal=0.25
+I/FAKEYT  ( 2249): FAKEYT speed=0.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=0.25 result=0.25 ok=true via=barra ms=552
+I/VYT     ( 3062): VYT_MARK_10
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=0.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=0.25 max=4.0 goal=1.00
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.00 result=1.00 ok=true via=preset ms=442
+I/VYT     ( 3098): VYT_MARK_11
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE bubble
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=282,320
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MOVED x=148 y=108
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=176,160
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,155 label=67,155 plus=111,155 min=258,155 close=289,155 shot=151,155 shott=186,155 cover=220,155
+I/VYT     ( 3176): VYT_MARK_12
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE bubble
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=282,160
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE dock
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=dock
+I/VYT     ( 2139): VYT_POS mode=dock dock=308,160 side=right
+I/VYT     ( 3234): VYT_MARK_13
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MOVED x=296 y=230
+I/VYT     ( 2139): VYT_POS mode=dock dock=308,286 side=right
+I/VYT     ( 3264): VYT_MARK_14
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE bubble
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=284,286
+I/VYT     ( 3291): VYT_MARK_15
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE dock
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=dock
+I/VYT     ( 2139): VYT_POS mode=dock dock=12,286 side=left
+I/VYT     ( 3318): VYT_MARK_16
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE bubble
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=36,286
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,281 label=67,281 plus=111,281 min=258,281 close=289,281 shot=151,281 shott=186,281 cover=220,281
+I/VYT     ( 3367): VYT_MARK_17
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][320,204] at=64,87 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.0 max=4.0 goal=1.25
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[0,384][320,640]
+I/VYT     ( 2139): VYT_APPLY target=1.25 result=1.25 ok=true via=preset ms=535
+I/VYT     ( 3418): VYT_MARK_18
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STATE overlay=hidden
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_SHOT ok name=Video 1 2m01s.png size=320x177
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,281 label=67,281 plus=111,281 min=258,281 close=289,281 shot=151,281 shott=186,281 cover=220,281
+I/VYT     ( 3462): VYT_MARK_19
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STATE overlay=hidden
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_SHOT ok name=Video 1 2m04s (con tiempo).png size=320x177
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,281 label=67,281 plus=111,281 min=258,281 close=289,281 shot=151,281 shott=186,281 cover=220,281
+I/VYT     ( 3500): VYT_MARK_20
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_PORTADA ok name=Video 1 (portada).png size=320x180 src=sesion
+I/VYT     ( 3537): VYT_MARK_21
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE close
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=close
+I/VYT     ( 2139): VYT_POS mode=close next=211,314 reopen=211,365
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,281 label=67,281 plus=111,281 min=258,281 close=289,281 shot=151,281 shott=186,281 cover=220,281
+I/VYT     ( 3594): VYT_MARK_22
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE close
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=close
+I/VYT     ( 2139): VYT_POS mode=close next=219,314 reopen=219,365
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_DISMISS video
+I/VYT     ( 2139): VYT_NOTIF on
+I/VYT     ( 2139): VYT_STATE overlay=hidden
+I/VYT     ( 3647): VYT_MARK_23
+I/FAKEYT  ( 2249): FAKEYT newvideo speed=1.00
+I/FAKEYT  ( 2249): FAKEYT video=Video
+I/VYT     ( 2139): VYT_RESTORE otro_video
+I/VYT     ( 2139): VYT_NEWVIDEO speed=1.00
+I/VYT     ( 2139): VYT_NOTIF off
+I/VYT     ( 2139): VYT_MODE bubble
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 3674): VYT_MARK_24
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=282,286
+I/VYT     ( 3682): VYT_MARK_25
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,281 label=67,281 plus=111,281 min=258,281 close=289,281 shot=151,281 shott=186,281 cover=220,281
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE close
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=close
+I/VYT     ( 2139): VYT_POS mode=close next=219,314 reopen=219,365
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_DISMISS video
+I/VYT     ( 2139): VYT_NOTIF on
+I/VYT     ( 2139): VYT_STATE overlay=hidden
+I/VYT     ( 3757): VYT_MARK_26
+I/VYT     ( 2139): VYT_RESTORE notificacion
+I/VYT     ( 2139): VYT_NOTIF off
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 3776): VYT_MARK_27
+I/VYT     ( 2139): VYT_POS mode=expanded minus=23,281 label=67,281 plus=111,281 min=258,281 close=289,281 shot=151,281 shott=186,281 cover=220,281
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE close
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=close
+I/VYT     ( 2139): VYT_POS mode=close next=219,314 reopen=219,365
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_DISMISS reabrir
+I/VYT     ( 2139): VYT_NOTIF on
+I/VYT     ( 2139): VYT_STATE overlay=hidden
+I/FAKEYT  ( 2249): FAKEYT video=Video
+I/VYT     ( 3839): VYT_MARK_28
+I/VYT     ( 2139): VYT_FG youtube=false
+I/VYT     ( 2139): VYT_RESTORE reabrir
+I/VYT     ( 2139): VYT_NOTIF off
+I/FAKEYT  ( 2249): FAKEYT newvideo speed=1.00
+I/VYT     ( 2139): VYT_NEWVIDEO speed=1.00
+I/FAKEYT  ( 2249): FAKEYT video=Video 1
+I/VYT     ( 2139): VYT_FG youtube=true
+I/VYT     ( 2139): VYT_MODE bubble
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=bubble
+I/VYT     ( 3904): VYT_MARK_29
+I/FAKEYT  ( 2249): FAKEYT rotated
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=282,286
+I/VYT     ( 2139): VYT_ROTATED 640x320
+I/VYT     ( 2139): VYT_POS mode=bubble bubble=564,155
+I/VYT     ( 3933): VYT_MARK_30
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_MODE expanded
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 2139): VYT_POS mode=expanded minus=305,150 label=349,150 plus=393,150 min=540,150 close=571,150 shot=433,150 shott=468,150 cover=502,150
+I/VYT     ( 3968): VYT_MARK_31
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.25
+I/VYT     ( 2139): VYT_TAP player=[0,24][640,320] at=128,127 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.00
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.0 max=4.0 goal=1.25
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[16,80][624,304]
+I/VYT     ( 2139): VYT_APPLY target=1.25 result=1.25 ok=true via=preset ms=553
+I/VYT     ( 4006): VYT_MARK_32
+I/VYT     ( 2139): VYT_TOUCH d
+I/VYT     ( 2139): VYT_STEP target=1.50
+I/VYT     ( 2139): VYT_TAP player=[0,24][640,320] at=128,127 cover=- ok=true
+I/FAKEYT  ( 2249): FAKEYT tap player controls_before=8
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/FAKEYT  ( 2249): FAKEYT dialogs=2
+I/FAKEYT  ( 2249): FAKEYT speed=1.25
+I/FAKEYT  ( 2249): FAKEYT dialogs=1
+I/VYT     ( 2139): VYT_PANEL cur=1.25 max=4.0 goal=1.50
+I/FAKEYT  ( 2249): FAKEYT speed=1.50
+I/FAKEYT  ( 2249): FAKEYT dialogs=0
+I/VYT     ( 2139): VYT_LEARN rect=[16,98][624,304]
+I/VYT     ( 2139): VYT_APPLY target=1.50 result=1.50 ok=true via=preset ms=378
+I/FAKEYT  ( 2249): FAKEYT rotated
+I/VYT     ( 2139): VYT_ROTATED 320x640
+I/VYT     ( 2139): VYT_POS mode=expanded minus=33,276 label=77,276 plus=121,276 min=268,276 close=299,276 shot=161,276 shott=196,276 cover=230,276
+I/VYT     ( 4054): VYT_MARK_33
+I/VYT     ( 2139): VYT_FG youtube=false
+I/VYT     ( 2139): VYT_STATE overlay=hidden
+I/VYT     ( 4092): VYT_MARK_34
+I/FAKEYT  ( 2249): FAKEYT video=Video 1
+I/VYT     ( 2139): VYT_FG youtube=true
+I/VYT     ( 2139): VYT_STATE overlay=shown mode=expanded
+I/VYT     ( 4113): VYT_MARK_35
+I/VYT     ( 2139): VYT_POS mode=expanded minus=33,276 label=77,276 plus=121,276 min=268,276 close=299,276 shot=161,276 shott=196,276 cover=230,276
+I/FAKEYT  ( 2249): FAKEYT player closed
+I/VYT     ( 2139): VYT_STATE overlay=hidden
